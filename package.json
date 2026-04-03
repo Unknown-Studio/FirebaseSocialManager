@@ -1,0 +1,18 @@
+{
+  "name": "com.suhdo.firebasesocialmanager",
+  "version": "0.1.0",
+  "displayName": "Firebase Social Manager",
+  "description": "A package for managing Firebase social features including Chat, Friends, and Profiles.",
+  "dependencies": {
+    "com.cysharp.unitask": "2.5.5"
+  },
+  "samples": [
+    {
+      "displayName": "Chat & Friend Demo",
+      "description": "V\u00ed d\u1ee5 UI d\u00f9ng th\u1eed ch\u1ee9c n\u0103ng k\u1ebft b\u1ea1n v\u00e0 nh\u1eafn tin trong Firebase Social Manager.",
+      "path": "Samples~/ChatAndFriendDemo"
+    }
+  ],
+  "unity": "2022.3",
+  "unityRelease": "62f2"
+}
