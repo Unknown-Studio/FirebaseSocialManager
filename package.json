@@ -1,11 +1,12 @@
 {
   "name": "com.suhdo.firebasesocialmanager",
-  "version": "0.1.0",
+  "version": "0.1.0-preview",
   "displayName": "Firebase Social Manager",
   "description": "A package for managing Firebase social features including Chat, Friends, and Profiles.",
   "dependencies": {
-    "com.cysharp.unitask": "2.5.5"
+    "com.cysharp.unitask": "2.5.10"
   },
+  "licensesUrl": "https://github.com/Unknown-Studio/FirebaseSocialManager/blob/main/LICENSE",
   "samples": [
     {
       "displayName": "Chat & Friend Demo",
@@ -18,5 +19,9 @@
     "url": "https://github.com/Unknown-Studio/FirebaseSocialManager.git"
   },
   "unity": "2022.3",
-  "unityRelease": "62f2"
+  "unityRelease": "62f2",
+  "author": {
+    "name": "Suhdo",
+    "email": "dungnguyen.suhdo@gmail.com"
+  }
 }

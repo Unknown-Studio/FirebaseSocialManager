@@ -28,3 +28,12 @@ Desktop.ini
 
 # Rider
 .Rider/
+
+# Unity Editor
+*.unitypackage
+*.asset
+LICENSE.meta
+CONTRIBUTING.md.meta
+CHANGELOG.md.meta
+RELEASE_NOTES.md.meta
+README.md.meta

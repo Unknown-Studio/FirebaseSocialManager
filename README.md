@@ -72,6 +72,54 @@ chatService.SubscribeToChatRoom(roomId, (message) => {
 await chatService.SendMessageAsync(roomId, currentUserId, "Hello world!");
 ```
 
+## Data Schema & Firebase Structure
+
+The package uses a specific Firestore structure to ensure performance, security, and scalability.
+
+### 1. User Profiles
+- **Path:** `users/{userId}`
+- **C# Model:** `UserProfile`
+
+| Field | Type | Description |
+| :--- | :--- | :--- |
+| `displayName` | `string` | User's visible name. |
+| `friendCode` | `string` | Unique 6-character code (e.g., `AB1234`) for searching. |
+| `avatarId` | `string` | ID of the selected avatar icon. |
+| `frameId` | `string` | ID of the selected avatar frame. |
+| `level` | `number` | User's current level. |
+| `achievements` | `map` | Nested object: `totalScore`, `gamesPlayed`, `wins`. |
+| `lastLogin` | `timestamp` | Server timestamp of the last session. |
+
+### 2. Social & Friends
+- **Path:** `users/{userId}/friends/{friendId}`
+- **C# Model:** `FriendRecord`
+
+| Field | Type | Description |
+| :--- | :--- | :--- |
+| `status` | `string` | `pending_sent`, `pending_received`, or `accepted`. |
+| `friendName` | `string` | Cached display name of the friend (denormalized). |
+| `avatarId` | `string` | Cached avatar ID. |
+| `updatedAt` | `timestamp` | Last time the relationship status changed. |
+
+> [!NOTE]
+> Relationship data is stored bi-directionally using **Write Batches** to ensure data consistency between both users.
+
+### 3. Private Messaging (Chat)
+- **Room Path:** `private_chats/{roomId}`
+- **Room Model:** `PrivateChatRoom`
+- **Messages Path:** `private_chats/{roomId}/messages/{messageId}`
+- **Message Model:** `ChatMessage`
+
+**Room Document:**
+- `participants`: Array of exactly 2 User IDs.
+- `lastMessage`: The content of the latest message sent.
+- `unreadCount`: A Map `{ [userId]: number }` tracking pending messages per user.
+
+**Message Document:**
+- `senderId`: UID of the sender.
+- `text`: Content of the message.
+- `timestamp`: Server timestamp of delivery.
+
 ## Running the Sample (Demo)
 
 1. Open the **Package Manager**.
