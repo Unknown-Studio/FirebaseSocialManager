@@ -13,6 +13,10 @@
       "path": "Samples~/ChatAndFriendDemo"
     }
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Unknown-Studio/FirebaseSocialManager.git"
+  },
   "unity": "2022.3",
   "unityRelease": "62f2"
 }

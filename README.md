@@ -26,11 +26,11 @@ The easiest way to install or update this package is via the Unity Package Manag
 4. Select **Add package from git URL...**
 5. Enter the following URL and click **Add**:
    ```
-   https://github.com/[Your-Username]/FirebaseSocialManager.git
+   https://github.com/Unknown-Studio/FirebaseSocialManager.git
    ```
-   _(Note: Replace `[Your-Username]/FirebaseSocialManager.git` with your actual Github Repository link once uploaded)._
+   _(Note: Use the URL above to install this package via Unity Package Manager)._
 
-> **Version Control:** To lock the package to a specific version (e.g. `0.1.0`), append `#0.1.0` to the end of your git URL: `https://github.com/.../FirebaseSocialManager.git#0.1.0`
+> **Version Control:** To lock the package to a specific version (e.g. `0.1.0`), append `#0.1.0` to the end of your git URL: `https://github.com/Unknown-Studio/FirebaseSocialManager.git#v0.1.0-preview`
 
 ## Documentation & Usage
 
