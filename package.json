@@ -1,6 +1,6 @@
 {
   "name": "com.suhdo.firebasesocialmanager",
-  "version": "0.1.0-preview",
+  "version": "0.2.0-preview",
   "displayName": "Firebase Social Manager",
   "description": "A package for managing Firebase social features including Chat, Friends, and Profiles.",
   "dependencies": {
@@ -12,6 +12,21 @@
       "displayName": "Chat & Friend Demo",
       "description": "V\u00ed d\u1ee5 UI d\u00f9ng th\u1eed ch\u1ee9c n\u0103ng k\u1ebft b\u1ea1n v\u00e0 nh\u1eafn tin trong Firebase Social Manager.",
       "path": "Samples~/ChatAndFriendDemo"
+    },
+    {
+      "displayName": "Profile Service Demo",
+      "description": "V\u00ed d\u1ee5 UI d\u00f9ng th\u1eed ch\u1ee9c n\u0103ng hi\u1ec3n th\u1ecb h\u1ed3 s\u01a1, c\u1eadp nh\u1eadt th\u00f4ng tin v\u00e0 t\u00ecm ki\u1ebfm ng\u01b0\u1eddi ch\u01a1i.",
+      "path": "Samples~/ProfileDemo"
+    },
+    {
+      "displayName": "Guild Service Demo",
+      "description": "V\u00ed d\u1ee5 UI d\u00f9ng th\u1eed ch\u1ee9c n\u0103ng hi\u1ec3n th\u1ecb h\u1ed3 s\u01a1, c\u1eadp nh\u1eadt th\u00f4ng tin v\u00e0 t\u00ecm ki\u1ebfm ng\u01b0\u1eddi ch\u01a1i.",
+      "path": "Samples~/GuildDemo"
+    },
+    {
+      "displayName": "Save Game Service Demo",
+      "description": "V\u00ed d\u1ee5 UI d\u00f9ng th\u1eed ch\u1ee9c n\u0103ng hi\u1ec3n th\u1ecb h\u1ed3 s\u01a1, c\u1eadp nh\u1eadt th\u00f4ng tin v\u00e0 t\u00ecm ki\u1ebfm ng\u01b0\u1eddi ch\u01a1i.",
+      "path": "Samples~/SaveGameDataDemo"
     }
   ],
   "repository": {

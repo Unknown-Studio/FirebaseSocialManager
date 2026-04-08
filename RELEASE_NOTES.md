@@ -1,4 +1,26 @@
-# Release Notes - v0.1.0-preview
+# Release Notes
+
+## 📦 Firebase Social Manager v0.2.0-preview
+
+This release introduces the highly anticipated **Guild/Team Module** and a completely refactored, flexible **Achievements Service**.
+
+### ✨ New Features
+
+- **Guild Module:** A complete subsystem to manage teams/guilds. Includes creation, membership limits (max 50), role management, regional suggestions, and a dedicated internal chat system (`SendMessage`, `ListenForNewMessages`).
+- **Generic Achievements:** Achievements are no longer hard-coded. Developers can now pass their own Custom C# Model to `AchievementsService<T>`.
+- **Performance Optimization:** Moved achievements data to a dedicated Firestore subcollection (`users/{userId}/data/achievements`) to drastically reduce payload sizes when fetching basic profiles.
+
+### 🎮 Samples & Demos
+
+- **Guild Demo:** Added `GuildTestUI` to fully test all guild functionalities (Create, Join, Leave, Fetch, Chat).
+- **Profile Demo:** Updated to utilize the new Generic Achievements Service model with a custom `DemoAchievements`.
+
+### ⚠️ Breaking Changes & Migration
+
+- **Profile Model:** `UserAchievements` class has been removed. `UserProfile` no longer contains the `achievements` field.
+- **Security Rules:** Update your Firestore Rules to include permissions for `match /data/{docId}` inside your users collection, and remove `guildId` from your restricted update fields.
+
+---
 
 ## 📦 Firebase Social Manager v0.1.0-preview
 
@@ -34,5 +56,5 @@ This is the first pre-release version of the **Firebase Social Manager**, standa
 Install via Unity Package Manager using the following Git URL:
 
 ```
-https://github.com/Unknown-Studio/FirebaseSocialManager.git#v0.1.0-preview
+https://github.com/Unknown-Studio/FirebaseSocialManager.git#v0.2.0-preview
 ```

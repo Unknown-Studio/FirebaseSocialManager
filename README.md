@@ -125,5 +125,7 @@ The package uses a specific Firestore structure to ensure performance, security,
 1. Open the **Package Manager**.
 2. Select **In Project** -> **Firebase Social Manager**.
 3. Expand the **Samples** section on the right-hand panel.
-4. Click **Import** next to the `Chat & Friend Demo`.
+4. Choose the sample you want to test and click **Import**:
+    - `Chat & Friend Demo`: Test real-time chat and friend requests.
+    - `Profile Service Demo`: Test profile creation, updates, and searching.
 5. The sample scripts and scenes will be copied to `Assets/Samples/Firebase Social Manager/...` where you can freely test and modify them.

@@ -26,9 +26,6 @@ namespace SocialManager.Profile
         /// </summary>
         UniTask<UserProfile> FindProfileByFriendCodeAsync(string friendCode, CancellationToken cancellationToken = default);
 
-        /// <summary>
-        /// (Cảnh báo tĩnh) Cập nhật cụm thành tựu. Nên gọi từ máy chủ thay vì Client nếu game bạn đang thiết lập Security Rule chặn Client sửa điểm.
-        /// </summary>
-        UniTask<bool> UpdateAchievementsAsync(UserAchievements achievements, CancellationToken cancellationToken = default);
+
     }
 }

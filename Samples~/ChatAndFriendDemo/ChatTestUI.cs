@@ -6,7 +6,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace SocialManager.UI
+namespace SocialManager.Sample.FriendChat
 {
     public class ChatTestUI : MonoBehaviour
     {
