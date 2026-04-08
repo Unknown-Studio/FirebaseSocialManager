@@ -1,5 +1,13 @@
 # Release Notes
 
+## 📦 Firebase Social Manager v0.2.2-preview
+
+### ✨ Change
+
+- Change `UniTask` dependencies.
+
+---
+
 ## 📦 Firebase Social Manager v0.2.1-preview
 
 ### ✨ Change
