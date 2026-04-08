@@ -1,5 +1,13 @@
 # Release Notes
 
+## 📦 Firebase Social Manager v0.2.1-preview
+
+### ✨ Change
+
+- Change `UniTask` version to `2.5.0`
+
+---
+
 ## 📦 Firebase Social Manager v0.2.0-preview
 
 This release introduces the highly anticipated **Guild/Team Module** and a completely refactored, flexible **Achievements Service**.
