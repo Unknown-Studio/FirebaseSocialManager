@@ -10,8 +10,8 @@ namespace SocialManager.SaveGame
     public class SaveGameService : ISaveGameService
     {
         private const string COLLECTION_USERS = "users";
-        private const string COLLECTION_SAVE = "save_data";
-        private const string DOCUMENT_CURRENT = "current";
+        private const string COLLECTION_SAVE = "data";
+        private const string DOCUMENT_CURRENT = "save_game_data";
 
         private readonly FirebaseFirestore _db;
         private readonly FirebaseAuth _auth;

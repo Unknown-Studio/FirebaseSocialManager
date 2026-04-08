@@ -75,7 +75,6 @@ namespace SocialManager.Profile
                         FriendCode = await GenerateUniqueFriendCodeAsync(cancellationToken), // Khởi tạo ngẫu nhiên có Validate Check Duplicate 
                         Level = 1,
                         GuildId = "",
-                        Achievements = new UserAchievements(),
                         ServerCreatedAt = FieldValue.ServerTimestamp,
                         LastLogin = FieldValue.ServerTimestamp
                     };
@@ -221,35 +220,5 @@ namespace SocialManager.Profile
             return GenerateRandomShortCode() + UnityEngine.Random.Range(10, 99).ToString();
         }
 
-        public async UniTask<bool> UpdateAchievementsAsync(UserAchievements achievements, CancellationToken cancellationToken = default)
-        {
-            if (string.IsNullOrEmpty(CurrentUserId))
-            {
-                Debug.LogError("[ProfileService] Lỗi: User chưa đăng nhập.");
-                return false;
-            }
-
-            try
-            {
-                DocumentReference userDoc = _db.Collection(COLLECTION_USERS).Document(CurrentUserId);
-                
-                // Cập nhật nguyên khối "achievements" đè lên bản ghi Firestore
-                // Firestore Unity SDK tự động parse object có [FirestoreData] xuống Dictionary Map của JSON
-                var updates = new Dictionary<string, object>
-                {
-                    { "achievements", achievements }
-                };
-                
-                await userDoc.UpdateAsync(updates).AsUniTask();
-                
-                _cachedMyProfile = null; // Clear cache local
-                return true;
-            }
-            catch (Exception ex)
-            {
-                Debug.LogError($"[ProfileService] Lỗi khi update Achievements: {ex.Message}");
-                return false;
-            }
-        }
     }
 }

@@ -27,9 +27,6 @@ namespace SocialManager.Profile.Models
         [FirestoreProperty("guildId")]
         public string GuildId { get; set; } = "";
 
-        [FirestoreProperty("achievements")]
-        public UserAchievements Achievements { get; set; } = new UserAchievements();
-
         [FirestoreProperty("lastLogin")]
         public object LastLogin { get; set; }
 
