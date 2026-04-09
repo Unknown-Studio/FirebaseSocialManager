@@ -1,6 +1,6 @@
 # Release Notes
 
-## 📦 Firebase Social Manager v0.2.3-preview
+## 📦 Firebase Social Manager v0.3.0-preview
 
 ### ✨ Change
 
