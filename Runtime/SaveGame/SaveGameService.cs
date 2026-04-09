@@ -5,7 +5,7 @@ using Firebase.Auth;
 using Firebase.Firestore;
 using UnityEngine;
 
-namespace SocialManager.SaveGame
+namespace Suhdo.FSM.SaveGame
 {
     public class SaveGameService : ISaveGameService
     {

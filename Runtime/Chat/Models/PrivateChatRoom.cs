@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using Firebase.Firestore;
 
-namespace SocialManager.Chat.Models
+namespace Suhdo.FSM.Chat.Models
 {
     [FirestoreData]
     public class PrivateChatRoom

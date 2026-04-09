@@ -1,6 +1,6 @@
 using Firebase.Firestore;
 
-namespace SocialManager.Profile.Models
+namespace Suhdo.FSM.Profile.Models
 {
     [FirestoreData]
     public class UserProfile

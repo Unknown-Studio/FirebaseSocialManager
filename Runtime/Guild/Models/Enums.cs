@@ -1,4 +1,4 @@
-namespace SocialManager.Team.Models
+namespace Suhdo.FSM.Team.Models
 {
     public static class GuildJoinType
     {

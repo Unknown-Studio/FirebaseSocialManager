@@ -1,7 +1,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace SocialManager.SaveGame
+namespace Suhdo.FSM.SaveGame
 {
     public interface ISaveGameService
     {

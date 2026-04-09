@@ -5,7 +5,7 @@ using Firebase.Auth;
 using Firebase.Firestore;
 using UnityEngine;
 
-namespace SocialManager.Achievements
+namespace Suhdo.FSM.Achievements
 {
     public class AchievementsService<T> : IAchievementsService<T> where T : class, new()
     {

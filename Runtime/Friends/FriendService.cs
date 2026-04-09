@@ -4,12 +4,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using Firebase.Auth;
 using Firebase.Firestore;
-using SocialManager.Friends.Models;
-using SocialManager.Profile.Models;
+using Suhdo.FSM.Profile.Models;
+using Suhdo.FSM.Friends.Models;
 using UnityEngine;
-using UserProfile = SocialManager.Profile.Models.UserProfile;
+using Models_UserProfile = Suhdo.FSM.Profile.Models.UserProfile;
+using UserProfile = Suhdo.FSM.Profile.Models.UserProfile;
 
-namespace SocialManager.Friends
+namespace Suhdo.FSM.Friends
 {
     public class FriendService : IFriendService
     {
@@ -49,7 +50,7 @@ namespace SocialManager.Friends
             }
         }
 
-        public async Task<bool> SendFriendRequestAsync(string targetUserId, UserProfile targetProfile, UserProfile myProfile, CancellationToken cancellationToken = default)
+        public async Task<bool> SendFriendRequestAsync(string targetUserId, Models_UserProfile targetProfile, Models_UserProfile myProfile, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrEmpty(CurrentUserId) || targetUserId == CurrentUserId) return false;
 
