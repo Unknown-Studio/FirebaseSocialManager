@@ -1,7 +1,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace SocialManager.Achievements
+namespace Suhdo.FSM.Achievements
 {
     public interface IAchievementsService<T> where T : class, new()
     {

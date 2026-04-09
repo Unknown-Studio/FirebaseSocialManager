@@ -5,12 +5,14 @@ using System.Threading.Tasks;
 using Firebase.Auth;
 using Firebase.Database;
 using Firebase.Firestore;
-using SocialManager.Profile.Models;
+using Suhdo.FSM.Profile.Models;
 using UnityEngine;
-using UserProfile = SocialManager.Profile.Models.UserProfile;
+using UserProfile = Suhdo.FSM.Profile.Models.UserProfile;
 
-namespace SocialManager.Profile
+namespace Suhdo.FSM.Profile
 {
+    using Models_UserProfile = Models.UserProfile;
+
     public class ProfileService : IProfileService
     {
         private const string COLLECTION_USERS = "users";
@@ -18,7 +20,7 @@ namespace SocialManager.Profile
         private readonly FirebaseFirestore _db;
         private readonly FirebaseAuth _auth;
 
-        private UserProfile _cachedMyProfile;
+        private Models_UserProfile _cachedMyProfile;
 
         // Dependency Injection Setup: Nhận instance truyền vào
         public ProfileService(FirebaseFirestore firestore, FirebaseAuth auth)
@@ -56,7 +58,7 @@ namespace SocialManager.Profile
                     };
                     
                     // Tự động gán mã FriendCode nếu profile cũ chưa từng được sinh mã
-                    var oldProfile = snapshot.ConvertTo<UserProfile>();
+                    var oldProfile = snapshot.ConvertTo<Models_UserProfile>();
                     if (string.IsNullOrEmpty(oldProfile.FriendCode))
                     {
                         updates.Add("friendCode", await GenerateUniqueFriendCodeAsync(cancellationToken));
@@ -67,7 +69,7 @@ namespace SocialManager.Profile
                 else
                 {
                     // Dữ liệu tạo mới dựa hoàn toàn vào Model (Type safe) thay vì Dictionary json
-                    var newProfile = new UserProfile
+                    var newProfile = new Models_UserProfile
                     {
                         DisplayName = displayName,
                         AvatarId = avatarId,
@@ -93,7 +95,7 @@ namespace SocialManager.Profile
             }
         }
 
-        public async Task<UserProfile> FetchMyProfileAsync(CancellationToken cancellationToken = default)
+        public async Task<Models_UserProfile> FetchMyProfileAsync(CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrEmpty(CurrentUserId)) 
             {
@@ -105,7 +107,7 @@ namespace SocialManager.Profile
             if (_cachedMyProfile != null)
                 return _cachedMyProfile;
 
-            UserProfile profileInfo = await FetchPublicProfileAsync(CurrentUserId, cancellationToken);
+            Models_UserProfile profileInfo = await FetchPublicProfileAsync(CurrentUserId, cancellationToken);
             
             // Xử lý tự Vá lỗi: Nếu tải về phát hiện User Profile cũ từ đời đầu chưa có Friend Code thì cấp ngay
             if (profileInfo != null && string.IsNullOrEmpty(profileInfo.FriendCode))
@@ -123,7 +125,7 @@ namespace SocialManager.Profile
             return _cachedMyProfile;
         }
 
-        public async Task<UserProfile> FetchPublicProfileAsync(string userId, CancellationToken cancellationToken = default)
+        public async Task<Models_UserProfile> FetchPublicProfileAsync(string userId, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrEmpty(userId)) return null;
 
@@ -135,7 +137,7 @@ namespace SocialManager.Profile
                 if (snapshot.Exists)
                 {
                     // Tự động deserialize toàn bộ trường
-                    UserProfile profile = snapshot.ConvertTo<UserProfile>();
+                    Models_UserProfile profile = snapshot.ConvertTo<Models_UserProfile>();
                     profile.Uid = snapshot.Id; 
                     return profile;
                 }
@@ -150,7 +152,7 @@ namespace SocialManager.Profile
             }
         }
 
-        public async Task<UserProfile> FindProfileByFriendCodeAsync(string friendCode, CancellationToken cancellationToken = default)
+        public async Task<Models_UserProfile> FindProfileByFriendCodeAsync(string friendCode, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrEmpty(friendCode)) return null;
 
@@ -167,7 +169,7 @@ namespace SocialManager.Profile
                     // SDK C# của Firebase trả IList kiểu gộp, nên phải dùng IEnumerator hoặc FirstOrDefault thay vì Index [0]
                     foreach (var doc in snapshot.Documents)
                     {
-                        UserProfile profile = doc.ConvertTo<UserProfile>();
+                        Models_UserProfile profile = doc.ConvertTo<Models_UserProfile>();
                         profile.Uid = doc.Id;
                         return profile;
                     }

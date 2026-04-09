@@ -4,10 +4,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Firebase.Auth;
 using Firebase.Firestore;
-using SocialManager.Chat.Models;
+using Suhdo.FSM.Chat.Models;
 using UnityEngine;
 
-namespace SocialManager.Chat
+namespace Suhdo.FSM.Chat
 {
     public class ChatService : IChatService
     {

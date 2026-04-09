@@ -1,6 +1,6 @@
 using Firebase.Firestore;
 
-namespace SocialManager.Friends.Models
+namespace Suhdo.FSM.Friends.Models
 {
     [FirestoreData]
     public class FriendRecord

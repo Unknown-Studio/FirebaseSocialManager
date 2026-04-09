@@ -4,10 +4,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Firebase.Auth;
 using Firebase.Firestore;
-using SocialManager.Team.Models;
+using Suhdo.FSM.Team.Models;
 using UnityEngine;
 
-namespace SocialManager.Team
+namespace Suhdo.FSM.Team
 {
     public class GuildService : IGuildService
     {

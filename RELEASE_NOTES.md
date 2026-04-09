@@ -1,5 +1,13 @@
 # Release Notes
 
+## 📦 Firebase Social Manager v0.3.1-preview
+
+### ✨ Change
+
+- Change name space to `Suhdo.FSM`.
+
+---
+
 ## 📦 Firebase Social Manager v0.3.0-preview
 
 ### ✨ Change

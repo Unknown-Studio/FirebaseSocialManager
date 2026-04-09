@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using SocialManager.Team.Models;
+using Suhdo.FSM.Team.Models;
 
-namespace SocialManager.Team
+namespace Suhdo.FSM.Team
 {
     public interface IGuildService
     {

@@ -1,8 +1,8 @@
 using System.Threading;
 using System.Threading.Tasks;
-using SocialManager.Profile.Models;
+using Suhdo.FSM.Profile.Models;
 
-namespace SocialManager.Profile
+namespace Suhdo.FSM.Profile
 {
     public interface IProfileService
     {

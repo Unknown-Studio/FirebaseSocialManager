@@ -1,10 +1,10 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using SocialManager.Friends.Models;
-using SocialManager.Profile.Models;
+using Suhdo.FSM.Friends.Models;
+using Suhdo.FSM.Profile.Models;
 
-namespace SocialManager.Friends
+namespace Suhdo.FSM.Friends
 {
     public interface IFriendService
     {

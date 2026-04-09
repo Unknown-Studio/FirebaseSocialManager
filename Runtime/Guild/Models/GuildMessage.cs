@@ -1,6 +1,6 @@
 using Firebase.Firestore;
 
-namespace SocialManager.Team.Models
+namespace Suhdo.FSM.Team.Models
 {
     [FirestoreData]
     public class GuildMessage

@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using SocialManager.Chat.Models;
+using Suhdo.FSM.Chat.Models;
 
-namespace SocialManager.Chat
+namespace Suhdo.FSM.Chat
 {
     public interface IChatService
     {
