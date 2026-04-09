@@ -1,6 +1,6 @@
 using System;
 using System.Threading;
-using Cysharp.Threading.Tasks;
+using System.Threading.Tasks;
 using Firebase.Auth;
 using Firebase.Firestore;
 using UnityEngine;
@@ -24,7 +24,7 @@ namespace SocialManager.Achievements
 
         private string CurrentUserId => _auth.CurrentUser?.UserId;
 
-        public async UniTask<T> FetchAchievementsAsync(string userId, CancellationToken cancellationToken = default)
+        public async Task<T> FetchAchievementsAsync(string userId, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrEmpty(userId)) return null;
 
@@ -33,7 +33,7 @@ namespace SocialManager.Achievements
                 DocumentReference docRef = _db.Collection(COLLECTION_USERS).Document(userId)
                     .Collection(SUBCOLLECTION_DATA).Document(DOC_ACHIEVEMENTS);
                 
-                DocumentSnapshot snapshot = await docRef.GetSnapshotAsync().AsUniTask();
+                DocumentSnapshot snapshot = await docRef.GetSnapshotAsync();
                 
                 if (snapshot.Exists)
                 {
@@ -49,7 +49,7 @@ namespace SocialManager.Achievements
             }
         }
 
-        public async UniTask<bool> UpdateAchievementsAsync(T achievements, CancellationToken cancellationToken = default)
+        public async Task<bool> UpdateAchievementsAsync(T achievements, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrEmpty(CurrentUserId))
             {
@@ -63,7 +63,7 @@ namespace SocialManager.Achievements
                     .Collection(SUBCOLLECTION_DATA).Document(DOC_ACHIEVEMENTS);
 
                 // Dùng phương pháp SetOptions.MergeAll để hỗ trợ update cục bộ hoặc chèn thêm
-                await docRef.SetAsync(achievements, SetOptions.MergeAll).AsUniTask();
+                await docRef.SetAsync(achievements, SetOptions.MergeAll);
                 return true;
             }
             catch (Exception ex)

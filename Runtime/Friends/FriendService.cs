@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Cysharp.Threading.Tasks;
 using Firebase.Auth;
 using Firebase.Firestore;
 using SocialManager.Friends.Models;
@@ -27,13 +26,13 @@ namespace SocialManager.Friends
         private CollectionReference GetMyFriendsCollection() => _db.Collection("users").Document(CurrentUserId).Collection("friends");
         private CollectionReference GetTargetFriendsCollection(string targetUid) => _db.Collection("users").Document(targetUid).Collection("friends");
 
-        public async UniTask<List<FriendRecord>> FetchAllFriendsAsync(CancellationToken cancellationToken = default)
+        public async Task<List<FriendRecord>> FetchAllFriendsAsync(CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrEmpty(CurrentUserId)) return new List<FriendRecord>();
 
             try
             {
-                QuerySnapshot snapshot = await GetMyFriendsCollection().GetSnapshotAsync().AsUniTask();
+                QuerySnapshot snapshot = await GetMyFriendsCollection().GetSnapshotAsync();
                 List<FriendRecord> results = new List<FriendRecord>();
                 foreach (DocumentSnapshot doc in snapshot.Documents)
                 {
@@ -50,7 +49,7 @@ namespace SocialManager.Friends
             }
         }
 
-        public async UniTask<bool> SendFriendRequestAsync(string targetUserId, UserProfile targetProfile, UserProfile myProfile, CancellationToken cancellationToken = default)
+        public async Task<bool> SendFriendRequestAsync(string targetUserId, UserProfile targetProfile, UserProfile myProfile, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrEmpty(CurrentUserId) || targetUserId == CurrentUserId) return false;
 
@@ -59,7 +58,7 @@ namespace SocialManager.Friends
                 DocumentReference myRecordRef = GetMyFriendsCollection().Document(targetUserId);
                 
                 // Kiểm tra xem đã có bản ghi tương tác nào giữa 2 người chưa (Ngăn chặn A và B gửi yêu cầu đè lên nhau)
-                DocumentSnapshot existingSnap = await myRecordRef.GetSnapshotAsync().AsUniTask();
+                DocumentSnapshot existingSnap = await myRecordRef.GetSnapshotAsync();
                 if (existingSnap.Exists)
                 {
                     string currentStatus = existingSnap.GetValue<string>("status");
@@ -106,7 +105,7 @@ namespace SocialManager.Friends
                 batch.Set(theirRecordRef, theirRecordData, SetOptions.MergeAll);
 
                 // Gửi toàn bộ lệnh lên chốt sổ Data
-                await batch.CommitAsync().AsUniTask();
+                await batch.CommitAsync();
                 return true;
             }
             catch (Exception ex)
@@ -116,7 +115,7 @@ namespace SocialManager.Friends
             }
         }
 
-        public async UniTask<bool> RespondToFriendRequestAsync(string targetUserId, bool isAccepted, CancellationToken cancellationToken = default)
+        public async Task<bool> RespondToFriendRequestAsync(string targetUserId, bool isAccepted, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrEmpty(CurrentUserId)) return false;
 
@@ -143,7 +142,7 @@ namespace SocialManager.Friends
                     batch.Delete(theirRecordRef);
                 }
 
-                await batch.CommitAsync().AsUniTask();
+                await batch.CommitAsync();
                 return true;
             }
             catch (Exception ex)
@@ -153,7 +152,7 @@ namespace SocialManager.Friends
             }
         }
 
-        public async UniTask<bool> RemoveFriendAsync(string targetUserId, CancellationToken cancellationToken = default)
+        public async Task<bool> RemoveFriendAsync(string targetUserId, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrEmpty(CurrentUserId)) return false;
 
@@ -166,7 +165,7 @@ namespace SocialManager.Friends
                 batch.Delete(myRecordRef);
                 batch.Delete(theirRecordRef);
 
-                await batch.CommitAsync().AsUniTask();
+                await batch.CommitAsync();
                 return true;
             }
             catch (Exception ex)

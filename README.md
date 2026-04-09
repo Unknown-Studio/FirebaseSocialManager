@@ -1,13 +1,13 @@
 # Firebase Social Manager
 
-A modular and lightweight Unity Package designed to provide social features utilizing Firebase services. This package includes logic for handling user profiles, friends list, and direct messaging (Chat) seamlessly using `UniTask` for async operations.
+A modular and lightweight Unity Package designed to provide social features utilizing Firebase services. This package includes logic for handling user profiles, friends list, and direct messaging (Chat) seamlessly using standard `Task` for async operations.
 
 ## Features
 
 - **Profile Module:** Manage user profiles and meta-data.
 - **Friends Module:** Send friend requests, accept/decline, and manage your friend list.
 - **Chat Module:** One-on-one secure real-time messaging between users.
-- **UniTask Integration:** Fully async/await API, preventing callback hells.
+- **Task Integration:** Fully async/await C# API, preventing callback hells.
 
 ## Prerequisites
 

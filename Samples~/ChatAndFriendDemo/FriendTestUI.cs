@@ -1,6 +1,6 @@
 using System;
 using System.Text;
-using Cysharp.Threading.Tasks;
+using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -32,11 +32,11 @@ namespace SocialManager.Sample.FriendChat
             _txtLog = transform.Find("LogPanel/Viewport/Content/TxtLog").GetComponent<TextMeshProUGUI>();
 
             // Setup Listeners Hook
-            _btnFetch.onClick.AddListener(() => FetchFriends().Forget());
-            _btnSend.onClick.AddListener(() => SendRequest().Forget());
-            _btnAccept.onClick.AddListener(() => Respond(true).Forget());
-            _btnReject.onClick.AddListener(() => Respond(false).Forget());
-            _btnRemove.onClick.AddListener(() => RemoveFriend().Forget());
+            _btnFetch.onClick.AddListener(() => FetchFriends());
+            _btnSend.onClick.AddListener(() => SendRequest());
+            _btnAccept.onClick.AddListener(() => Respond(true));
+            _btnReject.onClick.AddListener(() => Respond(false));
+            _btnRemove.onClick.AddListener(() => RemoveFriend());
 
             Log("Hệ thống uGUI Friend Test Đã Sẵn Sàng!");
         }
@@ -49,7 +49,7 @@ namespace SocialManager.Sample.FriendChat
             _txtLog.text = _logBuilder.ToString();
         }
 
-        private async UniTaskVoid FetchFriends()
+        private async void FetchFriends()
         {
             Log("Đang tải danh sách kết bạn...");
             var list = await FirebaseInit.FriendService.FetchAllFriendsAsync();
@@ -67,7 +67,7 @@ namespace SocialManager.Sample.FriendChat
         }
 
         // Helper Function tự động chuyển đổi mã FriendCode (6 ký tự) về UID thực của Firebase để query
-        private async UniTask<string> ResolveInputToUidAsync()
+        private async Task<string> ResolveInputToUidAsync()
         {
             string input = TargetId;
             if (string.IsNullOrEmpty(input)) return null;
@@ -84,7 +84,7 @@ namespace SocialManager.Sample.FriendChat
             return input; // Nếu chuỗi rất dài (28 ký tự), quy ước bạn đang copy paste UID trực tiếp từ console
         }
 
-        private async UniTaskVoid SendRequest()
+        private async void SendRequest()
         {
             string finalTargetUid = await ResolveInputToUidAsync();
             if (string.IsNullOrEmpty(finalTargetUid))
@@ -115,7 +115,7 @@ namespace SocialManager.Sample.FriendChat
             Log(success ? "=> Gửi YÊU CẦU thành công! Vui lòng bấm Load Danh Sách để xem trạng thái 'pending_sent'" : "=> Lỗi: Gửi thất bại do trùng lặp hoặc lỗi mạng.");
         }
 
-        private async UniTaskVoid Respond(bool isAccept)
+        private async void Respond(bool isAccept)
         {
             string finalTargetUid = await ResolveInputToUidAsync();
             if (string.IsNullOrEmpty(finalTargetUid))
@@ -129,7 +129,7 @@ namespace SocialManager.Sample.FriendChat
             Log(success ? "=> Phản hồi chốt thành công!" : "=> Lỗi vòng lặp: Phản hồi bị tắc.");
         }
 
-        private async UniTaskVoid RemoveFriend()
+        private async void RemoveFriend()
         {
             string finalTargetUid = await ResolveInputToUidAsync();
             if (string.IsNullOrEmpty(finalTargetUid))

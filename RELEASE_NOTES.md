@@ -1,5 +1,13 @@
 # Release Notes
 
+## 📦 Firebase Social Manager v0.2.3-preview
+
+### ✨ Change
+
+- Removed `UniTask` dependency. All asynchronous operations now use standard `System.Threading.Tasks.Task` instead.
+
+---
+
 ## 📦 Firebase Social Manager v0.2.2-preview
 
 ### ✨ Change

@@ -1,4 +1,4 @@
-using Cysharp.Threading.Tasks;
+
 using Firebase.Auth;
 using Firebase.Firestore;
 using SocialManager.SaveGame;
@@ -44,14 +44,14 @@ namespace SocialManager.UI
             // Init service (Generic)
             _saveGameService = new SaveGameService(FirebaseFirestore.DefaultInstance, FirebaseAuth.DefaultInstance);
 
-            btnSave.onClick.AddListener(() => SaveAsync().Forget());
-            btnLoad.onClick.AddListener(() => LoadAsync().Forget());
-            btnDelete.onClick.AddListener(() => DeleteAsync().Forget());
+            btnSave.onClick.AddListener(() => SaveAsync());
+            btnLoad.onClick.AddListener(() => LoadAsync());
+            btnDelete.onClick.AddListener(() => DeleteAsync());
             
             Log("SaveGameTestUI (Generic) Ready!");
         }
 
-        private async UniTaskVoid SaveAsync()
+        private async void SaveAsync()
         {
             Log("--- Saving (Generic) ---");
             
@@ -68,7 +68,7 @@ namespace SocialManager.UI
             Log(success ? $"[OK] Đã lưu thành công Snapshot của class {nameof(SampleSaveData)}" : "[LỖI] Lưu thất bại!");
         }
 
-        private async UniTaskVoid LoadAsync()
+        private async void LoadAsync()
         {
             Log("--- Loading (Generic) ---");
             
@@ -87,7 +87,7 @@ namespace SocialManager.UI
             }
         }
 
-        private async UniTaskVoid DeleteAsync()
+        private async void DeleteAsync()
         {
             Log("--- Deleting ---");
             bool success = await _saveGameService.DeleteSaveAsync();

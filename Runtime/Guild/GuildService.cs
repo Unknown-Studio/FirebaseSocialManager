@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
-using Cysharp.Threading.Tasks;
+using System.Threading.Tasks;
 using Firebase.Auth;
 using Firebase.Firestore;
 using SocialManager.Team.Models;
@@ -26,7 +26,7 @@ namespace SocialManager.Team
 
         private string CurrentUserId => _auth.CurrentUser?.UserId;
 
-        public async UniTask<string> CreateGuildAsync(string name, string description, string joinType, string region, CancellationToken cancellationToken = default)
+        public async Task<string> CreateGuildAsync(string name, string description, string joinType, string region, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrEmpty(CurrentUserId)) return null;
 
@@ -61,7 +61,7 @@ namespace SocialManager.Team
                 DocumentReference userRef = _db.Collection(COLLECTION_USERS).Document(CurrentUserId);
                 batch.Update(userRef, new Dictionary<string, object> { { "guildId", guildRef.Id } });
 
-                await batch.CommitAsync().AsUniTask();
+                await batch.CommitAsync();
                 return guildRef.Id;
             }
             catch (Exception ex)
@@ -71,7 +71,7 @@ namespace SocialManager.Team
             }
         }
 
-        public async UniTask<bool> JoinGuildAsync(string guildId, CancellationToken cancellationToken = default)
+        public async Task<bool> JoinGuildAsync(string guildId, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrEmpty(CurrentUserId) || string.IsNullOrEmpty(guildId)) return false;
 
@@ -114,7 +114,7 @@ namespace SocialManager.Team
                     transaction.Update(userRef, new Dictionary<string, object> { { "guildId", guildId } });
 
                     return true;
-                }).AsUniTask();
+                });
 
                 return success;
             }
@@ -125,7 +125,7 @@ namespace SocialManager.Team
             }
         }
 
-        public async UniTask<bool> LeaveGuildAsync(string guildId, CancellationToken cancellationToken = default)
+        public async Task<bool> LeaveGuildAsync(string guildId, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrEmpty(CurrentUserId) || string.IsNullOrEmpty(guildId)) return false;
 
@@ -165,7 +165,7 @@ namespace SocialManager.Team
                     transaction.Update(userRef, new Dictionary<string, object> { { "guildId", string.Empty } });
 
                     return true;
-                }).AsUniTask();
+                });
 
                 return success;
             }
@@ -176,11 +176,11 @@ namespace SocialManager.Team
             }
         }
 
-        public async UniTask<GuildData> FetchGuildAsync(string guildId, CancellationToken cancellationToken = default)
+        public async Task<GuildData> FetchGuildAsync(string guildId, CancellationToken cancellationToken = default)
         {
             try
             {
-                var doc = await _db.Collection(COLLECTION_GUILDS).Document(guildId).GetSnapshotAsync().AsUniTask();
+                var doc = await _db.Collection(COLLECTION_GUILDS).Document(guildId).GetSnapshotAsync();
                 if (!doc.Exists) return null;
 
                 var guild = doc.ConvertTo<GuildData>();
@@ -194,7 +194,7 @@ namespace SocialManager.Team
             }
         }
 
-        public async UniTask<List<GuildData>> SearchGuildsAsync(string queryText, CancellationToken cancellationToken = default)
+        public async Task<List<GuildData>> SearchGuildsAsync(string queryText, CancellationToken cancellationToken = default)
         {
             try
             {
@@ -205,7 +205,7 @@ namespace SocialManager.Team
                     .EndAt(queryText + "\uf8ff")
                     .Limit(20);
 
-                QuerySnapshot snapshot = await query.GetSnapshotAsync().AsUniTask();
+                QuerySnapshot snapshot = await query.GetSnapshotAsync();
                 
                 List<GuildData> results = new List<GuildData>();
                 foreach (var doc in snapshot.Documents)
@@ -227,7 +227,7 @@ namespace SocialManager.Team
             }
         }
 
-        public async UniTask<List<GuildData>> GetSuggestedGuildsAsync(string region, CancellationToken cancellationToken = default)
+        public async Task<List<GuildData>> GetSuggestedGuildsAsync(string region, CancellationToken cancellationToken = default)
         {
             try
             {
@@ -240,7 +240,7 @@ namespace SocialManager.Team
                     .OrderByDescending("memberCount")
                     .Limit(20);
 
-                QuerySnapshot snapshot = await query.GetSnapshotAsync().AsUniTask();
+                QuerySnapshot snapshot = await query.GetSnapshotAsync();
 
                 List<GuildData> results = new List<GuildData>();
                 foreach (var doc in snapshot.Documents)
@@ -260,12 +260,12 @@ namespace SocialManager.Team
             }
         }
 
-        public async UniTask<List<GuildMember>> FetchMembersAsync(string guildId, CancellationToken cancellationToken = default)
+        public async Task<List<GuildMember>> FetchMembersAsync(string guildId, CancellationToken cancellationToken = default)
         {
             try
             {
                 QuerySnapshot snapshot = await _db.Collection(COLLECTION_GUILDS).Document(guildId).Collection("members")
-                    .GetSnapshotAsync().AsUniTask();
+                    .GetSnapshotAsync();
 
                 List<GuildMember> members = new List<GuildMember>();
                 foreach (var doc in snapshot.Documents)
@@ -283,7 +283,7 @@ namespace SocialManager.Team
             }
         }
 
-        public async UniTask<bool> SendMessageAsync(string guildId, string text, CancellationToken cancellationToken = default)
+        public async Task<bool> SendMessageAsync(string guildId, string text, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrEmpty(CurrentUserId) || string.IsNullOrEmpty(guildId)) return false;
 
@@ -292,7 +292,7 @@ namespace SocialManager.Team
                 // Tối ưu UI: Lấy snapshot của displayName, tránh tình trạng Chat không thấy tên.
                 // Đối với game Production, bạn có thể truyền thẳng bộ Cache Profile vào Service này thông qua Dependency.
                 string senderName = "Unknown";
-                DocumentSnapshot myProfileSnap = await _db.Collection(COLLECTION_USERS).Document(CurrentUserId).GetSnapshotAsync().AsUniTask();
+                DocumentSnapshot myProfileSnap = await _db.Collection(COLLECTION_USERS).Document(CurrentUserId).GetSnapshotAsync();
                 if (myProfileSnap.Exists && myProfileSnap.ContainsField("displayName"))
                 {
                     senderName = myProfileSnap.GetValue<string>("displayName");
@@ -307,7 +307,7 @@ namespace SocialManager.Team
                     Timestamp = FieldValue.ServerTimestamp
                 };
 
-                await msgRef.SetAsync(msgData).AsUniTask();
+                await msgRef.SetAsync(msgData);
                 return true;
             }
             catch (Exception ex)
