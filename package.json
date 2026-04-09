@@ -3,9 +3,6 @@
   "version": "0.2.2-preview",
   "displayName": "Firebase Social Manager",
   "description": "A package for managing Firebase social features including Chat, Friends, and Profiles.",
-  "dependencies": {
-    "com.cysharp.unitask": "https://github.com/Cysharp/UniTask.git?path=src/UniTask/Assets/Plugins/UniTask"
-  },
   "licensesUrl": "https://github.com/Unknown-Studio/FirebaseSocialManager/blob/main/LICENSE",
   "samples": [
     {

@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Cysharp.Threading.Tasks;
 using Firebase.Auth;
 using Firebase.Firestore;
 using SocialManager.Chat.Models;
@@ -33,11 +32,11 @@ namespace SocialManager.Chat
             return compare < 0 ? $"{userA}_{userB}" : $"{userB}_{userA}";
         }
 
-        public async UniTask<PrivateChatRoom> GetRoomInfoAsync(string roomId, CancellationToken cancellationToken = default)
+        public async Task<PrivateChatRoom> GetRoomInfoAsync(string roomId, CancellationToken cancellationToken = default)
         {
             try
             {
-                var doc = await _db.Collection(COLLECTION_CHATS).Document(roomId).GetSnapshotAsync().AsUniTask();
+                var doc = await _db.Collection(COLLECTION_CHATS).Document(roomId).GetSnapshotAsync();
                 if (!doc.Exists) return null;
                 
                 var room = doc.ConvertTo<PrivateChatRoom>();
@@ -51,7 +50,7 @@ namespace SocialManager.Chat
             }
         }
 
-        public async UniTask<List<PrivateChatRoom>> FetchAllMyChatRoomsAsync(CancellationToken cancellationToken = default)
+        public async Task<List<PrivateChatRoom>> FetchAllMyChatRoomsAsync(CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrEmpty(CurrentUserId)) return new List<PrivateChatRoom>();
 
@@ -60,7 +59,7 @@ namespace SocialManager.Chat
                 // Gọi API lấy ra tất cả document thuộc Collection PrivateChats có chứa UID bằng hàm WhereArrayContains
                 QuerySnapshot snapshot = await _db.Collection(COLLECTION_CHATS)
                      .WhereArrayContains("participants", CurrentUserId)
-                     .GetSnapshotAsync().AsUniTask();
+                     .GetSnapshotAsync();
                 
                 List<PrivateChatRoom> rooms = new List<PrivateChatRoom>();
                 foreach (DocumentSnapshot doc in snapshot.Documents)
@@ -78,7 +77,7 @@ namespace SocialManager.Chat
             }
         }
 
-        public async UniTask<List<ChatMessage>> GetMessagesHistoryAsync(string roomId, int limit = 50, CancellationToken cancellationToken = default)
+        public async Task<List<ChatMessage>> GetMessagesHistoryAsync(string roomId, int limit = 50, CancellationToken cancellationToken = default)
         {
             try
             {
@@ -86,7 +85,7 @@ namespace SocialManager.Chat
                 QuerySnapshot snapshot = await _db.Collection(COLLECTION_CHATS).Document(roomId).Collection("messages")
                      .OrderByDescending("timestamp")
                      .Limit(limit)
-                     .GetSnapshotAsync().AsUniTask();
+                     .GetSnapshotAsync();
                 
                 List<ChatMessage> msgs = new List<ChatMessage>();
                 foreach (DocumentSnapshot doc in snapshot.Documents)
@@ -107,7 +106,7 @@ namespace SocialManager.Chat
             }
         }
 
-        public async UniTask<bool> SendMessageAsync(string roomId, string targetId, string text, CancellationToken cancellationToken = default)
+        public async Task<bool> SendMessageAsync(string roomId, string targetId, string text, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrEmpty(CurrentUserId)) return false;
 
@@ -142,7 +141,7 @@ namespace SocialManager.Chat
                 // Dùng phương pháp MergeAll để đảm bảo RoomRoot được override đúng số mà không bay màu các field ẩn
                 batch.Set(roomRef, roomUpdates, SetOptions.MergeAll);
 
-                await batch.CommitAsync().AsUniTask();
+                await batch.CommitAsync();
                 return true;
             }
             catch (Exception ex)
@@ -152,7 +151,7 @@ namespace SocialManager.Chat
             }
         }
 
-        public async UniTask<bool> MarkAsReadAsync(string roomId, CancellationToken cancellationToken = default)
+        public async Task<bool> MarkAsReadAsync(string roomId, CancellationToken cancellationToken = default)
         {
             try
             {
@@ -162,7 +161,7 @@ namespace SocialManager.Chat
                 {
                     { new FieldPath("unreadCount", CurrentUserId), 0 }
                 };
-                await roomRef.UpdateAsync(roomUpdates).AsUniTask();
+                await roomRef.UpdateAsync(roomUpdates);
                 return true;
             }
             catch (Exception ex)

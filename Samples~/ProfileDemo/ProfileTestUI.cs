@@ -1,5 +1,5 @@
 using System;
-using Cysharp.Threading.Tasks;
+
 using Firebase.Auth;
 using Firebase.Firestore;
 using SocialManager.Profile;
@@ -55,15 +55,15 @@ namespace SocialManager.Sample.Profile
             var auth = FirebaseAuth.DefaultInstance;
             AchievementsService = new AchievementsService<DemoAchievements>(db, auth);
 
-            btnUpdateProfile.onClick.AddListener(() => UpdateProfileAsync().Forget());
-            btnFetchMyProfile.onClick.AddListener(() => FetchMyProfileAsync().Forget());
-            btnSearchByCode.onClick.AddListener(() => SearchProfileAsync().Forget());
-            btnTestAchievements.onClick.AddListener(() => TestUpdateAchievementsAsync().Forget());
+            btnUpdateProfile.onClick.AddListener(() => UpdateProfileAsync());
+            btnFetchMyProfile.onClick.AddListener(() => FetchMyProfileAsync());
+            btnSearchByCode.onClick.AddListener(() => SearchProfileAsync());
+            btnTestAchievements.onClick.AddListener(() => TestUpdateAchievementsAsync());
             
             Log("ProfileTestUI Initialized. Please ensure you are logged in via Firebase Auth.");
         }
 
-        private async UniTaskVoid UpdateProfileAsync()
+        private async void UpdateProfileAsync()
         {
             string name = inputDisplayName.text.Trim();
             string avatar = inputAvatarId.text.Trim();
@@ -88,7 +88,7 @@ namespace SocialManager.Sample.Profile
             }
         }
 
-        private async UniTaskVoid FetchMyProfileAsync()
+        private async void FetchMyProfileAsync()
         {
             Log("Fetching your profile & achievements...");
             var profile = await ProfileService.FetchMyProfileAsync();
@@ -117,7 +117,7 @@ namespace SocialManager.Sample.Profile
             }
         }
 
-        private async UniTaskVoid SearchProfileAsync()
+        private async void SearchProfileAsync()
         {
             string code = inputSearchFriendCode.text.Trim();
             if (string.IsNullOrEmpty(code))
@@ -142,7 +142,7 @@ namespace SocialManager.Sample.Profile
             }
         }
 
-        private async UniTaskVoid TestUpdateAchievementsAsync()
+        private async void TestUpdateAchievementsAsync()
         {
             Log("Setting dummy achievements (Score: 5000, Stages: 30)...");
             var dummyAchieve = new DemoAchievements

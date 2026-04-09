@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
-using Cysharp.Threading.Tasks;
+using System.Threading.Tasks;
 using Firebase.Auth;
 using Firebase.Database;
 using Firebase.Firestore;
@@ -29,7 +29,7 @@ namespace SocialManager.Profile
 
         private string CurrentUserId => _auth.CurrentUser?.UserId;
 
-        public async UniTask<bool> InitializeOrUpdateProfileAsync(string displayName, string avatarId, string frameId, CancellationToken cancellationToken = default)
+        public async Task<bool> InitializeOrUpdateProfileAsync(string displayName, string avatarId, string frameId, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrEmpty(CurrentUserId))
             {
@@ -41,8 +41,8 @@ namespace SocialManager.Profile
             {
                 DocumentReference userDoc = _db.Collection(COLLECTION_USERS).Document(CurrentUserId);
                 
-                // GetSnapshotAsync của Firebase trả về System.Threading.Tasks.Task, chuyển nó sang struct UniTask
-                DocumentSnapshot snapshot = await userDoc.GetSnapshotAsync().AsUniTask();
+                // GetSnapshotAsync của Firebase trả về System.Threading.Tasks.Task
+                DocumentSnapshot snapshot = await userDoc.GetSnapshotAsync();
                 
                 if (snapshot.Exists)
                 {
@@ -62,7 +62,7 @@ namespace SocialManager.Profile
                         updates.Add("friendCode", await GenerateUniqueFriendCodeAsync(cancellationToken));
                     }
                     
-                    await userDoc.UpdateAsync(updates).AsUniTask();
+                    await userDoc.UpdateAsync(updates);
                 }
                 else
                 {
@@ -80,7 +80,7 @@ namespace SocialManager.Profile
                     };
                     
                     // SetOptions.MergeAll để đảm bảo an toàn ghi đè field
-                    await userDoc.SetAsync(newProfile, SetOptions.MergeAll).AsUniTask();
+                    await userDoc.SetAsync(newProfile, SetOptions.MergeAll);
                 }
 
                 _cachedMyProfile = null; // Clean cache nếu fetch
@@ -93,7 +93,7 @@ namespace SocialManager.Profile
             }
         }
 
-        public async UniTask<UserProfile> FetchMyProfileAsync(CancellationToken cancellationToken = default)
+        public async Task<UserProfile> FetchMyProfileAsync(CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrEmpty(CurrentUserId)) 
             {
@@ -114,7 +114,7 @@ namespace SocialManager.Profile
                 profileInfo.FriendCode = newFriendCode;
                 
                 DocumentReference userDoc = _db.Collection(COLLECTION_USERS).Document(CurrentUserId);
-                await userDoc.UpdateAsync(new Dictionary<string, object> { { "friendCode", newFriendCode } }).AsUniTask();
+                await userDoc.UpdateAsync(new Dictionary<string, object> { { "friendCode", newFriendCode } });
                 
                 Debug.Log($"[ProfileService] Đã tự động vá lỗi hệ thống: Tạo bù FriendCode mới [{newFriendCode}] cho tài khoản hệ cũ.");
             }
@@ -123,14 +123,14 @@ namespace SocialManager.Profile
             return _cachedMyProfile;
         }
 
-        public async UniTask<UserProfile> FetchPublicProfileAsync(string userId, CancellationToken cancellationToken = default)
+        public async Task<UserProfile> FetchPublicProfileAsync(string userId, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrEmpty(userId)) return null;
 
             try
             {
                 DocumentReference userDoc = _db.Collection(COLLECTION_USERS).Document(userId);
-                DocumentSnapshot snapshot = await userDoc.GetSnapshotAsync().AsUniTask();
+                DocumentSnapshot snapshot = await userDoc.GetSnapshotAsync();
 
                 if (snapshot.Exists)
                 {
@@ -150,7 +150,7 @@ namespace SocialManager.Profile
             }
         }
 
-        public async UniTask<UserProfile> FindProfileByFriendCodeAsync(string friendCode, CancellationToken cancellationToken = default)
+        public async Task<UserProfile> FindProfileByFriendCodeAsync(string friendCode, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrEmpty(friendCode)) return null;
 
@@ -160,7 +160,7 @@ namespace SocialManager.Profile
                 QuerySnapshot snapshot = await _db.Collection(COLLECTION_USERS)
                     .WhereEqualTo("friendCode", friendCode)
                     .Limit(1)
-                    .GetSnapshotAsync().AsUniTask();
+                    .GetSnapshotAsync();
 
                 if (snapshot.Count > 0)
                 {
@@ -196,7 +196,7 @@ namespace SocialManager.Profile
         }
 
         // Sinh mã code và kết nối Database để đảm bảo mã Code không bao giờ bị trùng (Collision Prevention)
-        private async UniTask<string> GenerateUniqueFriendCodeAsync(CancellationToken cancellationToken = default)
+        private async Task<string> GenerateUniqueFriendCodeAsync(CancellationToken cancellationToken = default)
         {
             int maxAttempts = 10;
             for (int i = 0; i < maxAttempts; i++)
@@ -205,9 +205,7 @@ namespace SocialManager.Profile
                 
                 // Quét xem Firestore đã từng có ông nào sử dụng cái FriendCode này hay chưa
                 QuerySnapshot snapshot = await _db.Collection(COLLECTION_USERS)
-                    .WhereEqualTo("friendCode", code)
-                    .Limit(1)
-                    .GetSnapshotAsync().AsUniTask();
+                    .GetSnapshotAsync();
                 
                 if (snapshot.Count == 0) 
                 {

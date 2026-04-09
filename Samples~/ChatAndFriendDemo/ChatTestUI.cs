@@ -1,6 +1,6 @@
 using System;
 using System.Text;
-using Cysharp.Threading.Tasks;
+using System.Threading.Tasks;
 using Firebase.Auth;
 using TMPro;
 using UnityEngine;
@@ -27,10 +27,10 @@ namespace SocialManager.Sample.FriendChat
 
         private void Start()
         {
-            btnFetchInbox.onClick.AddListener(() => FetchInboxAsync().Forget());
-            btnHistory.onClick.AddListener(() => FetchHistoryAsync().Forget());
-            btnSend.onClick.AddListener(() => SendMessageAsync().Forget());
-            btnMarkRead.onClick.AddListener(() => MarkAsReadAsync().Forget());
+            btnFetchInbox.onClick.AddListener(() => FetchInboxAsync());
+            btnHistory.onClick.AddListener(() => FetchHistoryAsync());
+            btnSend.onClick.AddListener(() => SendMessageAsync());
+            btnMarkRead.onClick.AddListener(() => MarkAsReadAsync());
             btnListen.onClick.AddListener(ToggleRealtimeListen);
             
             Log("ChatTestUI Đã Kết Nối! Luôn sử dụng FriendCode của tài khoản nhận để test tính năng.");
@@ -43,7 +43,7 @@ namespace SocialManager.Sample.FriendChat
         }
 
         // Tái sử dụng logic Giải mã ngược FriendCode thành UID 32 Ký Tự
-        private async UniTask<string> ResolveTargetIdAsync()
+        private async Task<string> ResolveTargetIdAsync()
         {
             string code = inputTargetFriendCode.text.Trim();
             if (string.IsNullOrEmpty(code))
@@ -61,7 +61,7 @@ namespace SocialManager.Sample.FriendChat
             return targetProfile.Uid;
         }
 
-        private async UniTaskVoid FetchInboxAsync()
+        private async void FetchInboxAsync()
         {
             Log("---");
             Log("Đang kết nối Firestore tải Inbox List...");
@@ -87,7 +87,7 @@ namespace SocialManager.Sample.FriendChat
             Log(sb.ToString());
         }
 
-        private async UniTaskVoid FetchHistoryAsync()
+        private async void FetchHistoryAsync()
         {
             string targetId = await ResolveTargetIdAsync();
             if (targetId == null) return;
@@ -107,7 +107,7 @@ namespace SocialManager.Sample.FriendChat
             Log(sb.ToString());
         }
 
-        private async UniTaskVoid SendMessageAsync()
+        private async void SendMessageAsync()
         {
             string text = inputMessageText.text.Trim();
             if (string.IsNullOrEmpty(text))
@@ -134,7 +134,7 @@ namespace SocialManager.Sample.FriendChat
             }
         }
 
-        private async UniTaskVoid MarkAsReadAsync()
+        private async void MarkAsReadAsync()
         {
             string targetId = await ResolveTargetIdAsync();
             if (targetId == null) return;

@@ -1,6 +1,6 @@
 using System;
 using System.Threading;
-using Cysharp.Threading.Tasks;
+using System.Threading.Tasks;
 using Firebase.Auth;
 using Firebase.Firestore;
 using UnityEngine;
@@ -30,7 +30,7 @@ namespace SocialManager.SaveGame
             return _db.Collection(COLLECTION_USERS).Document(CurrentUserId).Collection(COLLECTION_SAVE).Document(DOCUMENT_CURRENT);
         }
 
-        public async UniTask<bool> SaveAsync<T>(T data, CancellationToken cancellationToken = default)
+        public async Task<bool> SaveAsync<T>(T data, CancellationToken cancellationToken = default)
         {
             var docRef = GetSaveDocRef();
             if (docRef == null)
@@ -42,7 +42,7 @@ namespace SocialManager.SaveGame
             try
             {
                 // Sử dụng SetAsync để Ghi đè toàn bộ (mặc định cho Save Snapshot)
-                await docRef.SetAsync(data).AsUniTask();
+                await docRef.SetAsync(data);
                 Debug.Log($"[SaveGameService] Đã lưu dữ liệu ({typeof(T).Name}) lên Cloud thành công cho UID: {CurrentUserId}");
                 return true;
             }
@@ -53,14 +53,14 @@ namespace SocialManager.SaveGame
             }
         }
 
-        public async UniTask<T> LoadAsync<T>(CancellationToken cancellationToken = default) where T : class
+        public async Task<T> LoadAsync<T>(CancellationToken cancellationToken = default) where T : class
         {
             var docRef = GetSaveDocRef();
             if (docRef == null) return null;
 
             try
             {
-                DocumentSnapshot snapshot = await docRef.GetSnapshotAsync().AsUniTask();
+                DocumentSnapshot snapshot = await docRef.GetSnapshotAsync();
                 if (snapshot.Exists)
                 {
                     return snapshot.ConvertTo<T>();
@@ -76,14 +76,14 @@ namespace SocialManager.SaveGame
             }
         }
 
-        public async UniTask<bool> DeleteSaveAsync(CancellationToken cancellationToken = default)
+        public async Task<bool> DeleteSaveAsync(CancellationToken cancellationToken = default)
         {
             var docRef = GetSaveDocRef();
             if (docRef == null) return false;
 
             try
             {
-                await docRef.DeleteAsync().AsUniTask();
+                await docRef.DeleteAsync();
                 Debug.Log("[SaveGameService] Đã xóa dữ liệu lưu thành công.");
                 return true;
             }
