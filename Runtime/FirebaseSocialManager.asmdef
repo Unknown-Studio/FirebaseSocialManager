@@ -1,7 +1,13 @@
 {
     "name": "SocialManager",
     "rootNamespace": "SocialManager",
-    "references": [],
+    "references": [
+        "UniTask",
+        "Firebase.App",
+        "Firebase.Auth",
+        "Firebase.Firestore",
+        "Firebase.Database"
+    ],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
