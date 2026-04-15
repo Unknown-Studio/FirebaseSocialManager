@@ -1,5 +1,49 @@
 # Release Notes
 
+## 📦 Firebase Social Manager v0.4.0-preview
+
+This release introduces the **Presence System** for real-time online/offline status tracking and a **Generic Save Game Module** for flexible cloud saves.
+
+### ✨ New Features
+
+- **Presence System:** Comprehensive online/offline status tracking powered by Firebase Realtime Database.
+    - Automatic offline detection via RTDB `onDisconnect` — ensures accurate status even on app crashes or network loss.
+    - Batch status fetching (`GetStatusesAsync`) to efficiently query all friends' statuses in a single call.
+    - Manual `SetOfflineAsync` for clean logout flows.
+- **Generic Save Game Module:** A fully customizable cloud save system using Firestore.
+    - Clients define their own `[FirestoreData]` models (e.g., `MyGameSave`) without modifying the package.
+    - Single-snapshot overwrite strategy at `users/{userId}/save_data/current`.
+- **Friend List Presence Indicators:** The Friend Demo UI now displays 🟢 (Online) / ⚪ (Offline) badges next to each friend.
+
+### 🐛 Bug Fixes
+
+- **Chat Permission Bug:** Resolved `Missing or insufficient permissions` error when creating new chat rooms via `WriteBatch` by implementing `getAfter` in Firestore Security Rules.
+- **FriendCode Auto-Patch:** Fixed an issue where legacy accounts without a `FriendCode` were not properly patched during profile fetch.
+
+### 🎮 Samples & Demos
+
+- **Chat & Friend Demo:** Updated `FirebaseInit` to automatically initialize `PresenceService` and call `SetOnlineAsync` on login.
+- **Save Game Demo:** New `SaveGameTestUI` with `SaveGameTestUIGenerator` for quickly testing cloud save/load operations.
+
+### ⚠️ Setup Required
+
+- **Realtime Database Rules:** You must add the following rules to your Firebase RTDB:
+  ```json
+  {
+    "rules": {
+      "presence": {
+        "$uid": {
+          ".read": "auth != null",
+          ".write": "auth != null && auth.uid == $uid"
+        }
+      }
+    }
+  }
+  ```
+- **Firestore Rules:** Ensure `save_data` subcollection rules are configured for `users/{userId}/save_data/{docId}`.
+
+---
+
 ## 📦 Firebase Social Manager v0.3.1-preview
 
 ### ✨ Change
@@ -88,5 +132,5 @@ This is the first pre-release version of the **Firebase Social Manager**, standa
 Install via Unity Package Manager using the following Git URL:
 
 ```
-https://github.com/Unknown-Studio/FirebaseSocialManager.git#v0.2.0-preview
+https://github.com/Unknown-Studio/FirebaseSocialManager.git#v0.4.0-preview
 ```
