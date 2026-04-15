@@ -1,5 +1,25 @@
 # Release Notes
 
+## 📦 Firebase Social Manager v0.4.1-preview
+
+A patch release to align the new Presence module with the established `Suhdo.FSM` namespace convention and fix an incorrect Firebase API call.
+
+### 🛠 Changes
+
+- **Namespace Alignment:** Migrated all Presence module namespaces from `SocialManager.Presence` → `Suhdo.FSM.Presence` to match the unified package convention established in v0.3.1.
+- **Model Namespace:** Renamed `SocialManager.Presence.Models` → `Suhdo.FSM.Presence.Model` (singular) for consistency with other modules.
+- **Sample Imports:** Updated `FirebaseInit.cs` to use `Suhdo.FSM.*` namespaces across Chat, Friends, and Profile services.
+
+### 🐛 Bug Fixes
+
+- **Firebase API Fix:** Corrected `UpdateChildren` → `UpdateChildrenAsync` in `PresenceService` to match the Firebase Unity SDK method signature.
+
+### ⚠️ Breaking Changes
+
+- If you referenced the old `SocialManager.Presence` namespace, update your `using` directives to `Suhdo.FSM.Presence`.
+
+---
+
 ## 📦 Firebase Social Manager v0.4.0-preview
 
 This release introduces the **Presence System** for real-time online/offline status tracking and a **Generic Save Game Module** for flexible cloud saves.

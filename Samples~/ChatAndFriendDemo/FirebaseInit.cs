@@ -3,10 +3,10 @@ using Firebase;
 using Firebase.Auth;
 using Firebase.Extensions;
 using Firebase.Firestore;
-using SocialManager.Presence;
 using Firebase.Database;
 using Suhdo.FSM.Chat;
 using Suhdo.FSM.Friends;
+using Suhdo.FSM.Presence;
 using Suhdo.FSM.Profile;
 using UnityEngine;
 
