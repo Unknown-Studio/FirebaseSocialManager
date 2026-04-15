@@ -1,13 +1,12 @@
-
 using Firebase.Auth;
 using Firebase.Firestore;
-using SocialManager.SaveGame;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using System.Collections.Generic;
+using Suhdo.FSM.SaveGame;
 
-namespace SocialManager.UI
+namespace Suhdo.FSM.Sample.SaveGame
 {
     // LỚP DỮ LIỆU MẪU: Client tự định nghĩa theo nhu cầu của Game
     [FirestoreData]

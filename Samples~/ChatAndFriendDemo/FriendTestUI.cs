@@ -5,7 +5,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace SocialManager.Sample.FriendChat
+namespace Suhdo.FSM.Sample.FriendChat
 {
     public class FriendTestUI : MonoBehaviour
     {
@@ -60,9 +60,20 @@ namespace SocialManager.Sample.FriendChat
             }
 
             Log($"--- Danh sách bạn ({list.Count} UID) ---");
+            
+            // Lấy danh sách UIDs để query trạng thái hàng loạt
+            var uids = list.ConvertAll(f => f.Uid);
+            var statuses = await FirebaseInit.PresenceService.GetStatusesAsync(uids);
+
             foreach (var f in list)
             {
-                Log($"- ID: {f.Uid} | Name: {f.FriendName} | Status: {f.Status}");
+                string statusIcon = "⚪ Offline";
+                if (statuses.TryGetValue(f.Uid, out var p) && p.IsOnline)
+                {
+                    statusIcon = "🟢 Online";
+                }
+                
+                Log($"{statusIcon} | Name: {f.FriendName} | Status: {f.Status}");
             }
         }
 

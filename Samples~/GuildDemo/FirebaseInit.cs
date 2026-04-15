@@ -3,11 +3,10 @@ using Firebase;
 using Firebase.Auth;
 using Firebase.Extensions;
 using Firebase.Firestore;
-using SocialManager.Profile;
-using SocialManager.Team;
+using Suhdo.FSM.Team;
 using UnityEngine;
 
-namespace SocialManager.Sample.Guild
+namespace Suhdo.FSM.Sample.Guild
 {
     public class FirebaseInit : MonoBehaviour
     {

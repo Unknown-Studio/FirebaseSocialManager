@@ -2434,6 +2434,7 @@ GameObject:
   - component: {fileID: 1544367462}
   - component: {fileID: 1544367461}
   - component: {fileID: 1544367460}
+  - component: {fileID: 1544367464}
   m_Layer: 0
   m_Name: ChatTestUI_Panel
   m_TagString: Untagged
@@ -2554,6 +2555,26 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1544367458}
   m_CullTransparentMesh: 1
+--- !u!114 &1544367464
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1544367458}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4a948710f25434b0e9cb1596475a7fae, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  inputTargetFriendCode: {fileID: 1947410493}
+  inputMessageText: {fileID: 417567612}
+  textLog: {fileID: 989385339}
+  btnFetchInbox: {fileID: 1687210860}
+  btnHistory: {fileID: 2111186514}
+  btnSend: {fileID: 394616460}
+  btnMarkRead: {fileID: 571055192}
+  btnListen: {fileID: 59545730}
 --- !u!1 &1567852766
 GameObject:
   m_ObjectHideFlags: 0
