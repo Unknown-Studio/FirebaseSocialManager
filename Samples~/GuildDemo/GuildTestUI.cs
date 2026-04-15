@@ -1,12 +1,11 @@
 using System;
 using UnityEngine;
 using System.Collections.Generic;
-using SocialManager.Sample.Guild;
-using SocialManager.Team.Models;
+using Suhdo.FSM.Team.Models;
 using TMPro;
 using UnityEngine.UI;
 
-namespace SocialManager.Demo.UI
+namespace Suhdo.FSM.Sample.Guild
 {
     public class GuildTestUI : MonoBehaviour
     {

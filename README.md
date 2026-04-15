@@ -50,25 +50,25 @@ IFriendService friendService = new FriendService();
 ### 2. Getting Started with Friends
 
 ```csharp
-// Lấy danh sách bạn bè
+// Fetch friend list
 var friendList = await friendService.GetFriendsAsync(currentUserId);
 foreach(var friend in friendList) {
     Debug.Log($"Friend: {friend.DisplayName}");
 }
 
-// Gửi lời mời kết bạn
+// Send friend request
 await friendService.SendFriendRequestAsync(currentUserId, targetUserId);
 ```
 
 ### 3. Getting Started with Chat
 
 ```csharp
-// Lắng nghe tin nhắn mới trong phòng chat
+// Subscribe to new messages in a chat room
 chatService.SubscribeToChatRoom(roomId, (message) => {
     Debug.Log($"New message from {message.SenderId}: {message.Content}");
 });
 
-// Gửi tin nhắn
+// Send a message
 await chatService.SendMessageAsync(roomId, currentUserId, "Hello world!");
 ```
 

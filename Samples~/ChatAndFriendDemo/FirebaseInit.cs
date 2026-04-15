@@ -3,12 +3,14 @@ using Firebase;
 using Firebase.Auth;
 using Firebase.Extensions;
 using Firebase.Firestore;
-using SocialManager.Chat;
-using SocialManager.Friends;
-using SocialManager.Profile;
+using SocialManager.Presence;
+using Firebase.Database;
+using Suhdo.FSM.Chat;
+using Suhdo.FSM.Friends;
+using Suhdo.FSM.Profile;
 using UnityEngine;
 
-namespace SocialManager.Sample.FriendChat
+namespace Suhdo.FSM.Sample.FriendChat
 {
     public class FirebaseInit : MonoBehaviour
     {
@@ -16,6 +18,7 @@ namespace SocialManager.Sample.FriendChat
         public static IProfileService ProfileService;
         public static IFriendService FriendService;
         public static IChatService ChatService;
+        public static IPresenceService PresenceService;
 
         private void Awake()
         {
@@ -31,7 +34,10 @@ namespace SocialManager.Sample.FriendChat
                     ProfileService = new ProfileService(db, auth);
                     FriendService = new FriendService(db, auth);
                     ChatService = new ChatService(db, auth);
+                    PresenceService = new PresenceService(FirebaseDatabase.DefaultInstance, auth);
+
                     await ProfileService.InitializeOrUpdateProfileAsync("PewPew", "0", "0");
+                    await PresenceService.SetOnlineAsync();
                 }
                 else
                 {

@@ -3,10 +3,10 @@ using Firebase;
 using Firebase.Auth;
 using Firebase.Extensions;
 using Firebase.Firestore;
-using SocialManager.Profile;
+using Suhdo.FSM.Profile;
 using UnityEngine;
 
-namespace SocialManager.Sample.Profile
+namespace Suhdo.FSM.Sample.Profile
 {
     public class FirebaseInit : MonoBehaviour
     {

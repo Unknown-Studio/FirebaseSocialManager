@@ -2,14 +2,13 @@ using System;
 
 using Firebase.Auth;
 using Firebase.Firestore;
-using SocialManager.Profile;
-using SocialManager.Profile.Models;
-using SocialManager.Achievements;
+using Suhdo.FSM.Achievements;
+using Suhdo.FSM.Profile;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace SocialManager.Sample.Profile
+namespace Suhdo.FSM.Sample.Profile
 {
     [FirestoreData]
     public class DemoAchievements
