@@ -3,6 +3,23 @@
 All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0-preview] - 2026-04-15
+
+### Added
+
+- **Presence System:** Comprehensive online/offline status tracking using Firebase Realtime Database.
+    - Automatic offline status update via RTDB `onDisconnect`.
+    - Batch fetching of friend statuses to minimize latency and database reads.
+- **Generic Save Game Module:** A fully customizable cloud save system.
+    - Allows clients to define their own `[FirestoreData]` models.
+    - Supports overwriting snapshots for consistent game state management.
+- **Improved UI Demos:** Updated "Chat & Friend Demo" to include visual presence indicators (🟢/⚪).
+
+### Fixed
+
+- **Chat Permission Bug:** Resolved "Missing or insufficient permissions" when creating new chat rooms using `WriteBatch` by implementing `getAfter` in Firestore Security Rules.
+- **Profile Initialization:** Fixed an issue where legacy accounts without a `FriendCode` were not properly patched during fetch.
+
 ## [0.3.1-preview] - 2026-04-09
 
 ### Changed
