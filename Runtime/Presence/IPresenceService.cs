@@ -4,7 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using SocialManager.Presence.Models;
 
-namespace SocialManager.Presence
+namespace Suhdo.FSM.Presence
 {
     public interface IPresenceService
     {

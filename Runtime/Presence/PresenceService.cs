@@ -7,7 +7,7 @@ using Firebase.Database;
 using SocialManager.Presence.Models;
 using UnityEngine;
 
-namespace SocialManager.Presence
+namespace Suhdo.FSM.Presence
 {
     public class PresenceService : IPresenceService
     {

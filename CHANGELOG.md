@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.1-preview] - 2026-04-15
+
+### Changed
+
+- **Namespace Alignment:** Migrated Presence module namespaces from `SocialManager.Presence` to `Suhdo.FSM.Presence` to align with the unified `Suhdo.FSM` convention.
+- **Model Namespace:** Renamed `SocialManager.Presence.Models` to `Suhdo.FSM.Presence.Model` (singular) for consistency with other modules.
+- **Sample Imports:** Updated `FirebaseInit.cs` to use `Suhdo.FSM.*` namespaces for Chat, Friends, and Profile services.
+
+### Fixed
+
+- **Firebase API:** Corrected `UpdateChildren` calls to `UpdateChildrenAsync` in `PresenceService` to match the Firebase Unity SDK API.
+
 ## [0.4.0-preview] - 2026-04-15
 
 ### Added
