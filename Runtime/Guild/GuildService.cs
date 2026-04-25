@@ -331,6 +331,13 @@ namespace Suhdo.FSM.Team
                     {
                         var msg = change.Document.ConvertTo<GuildMessage>();
                         msg.MessageId = change.Document.Id;
+
+                        // Xử lý trường hợp message mới gửi từ Local sẽ có Timestamp = null do ServerTimestamp chưa phản hồi
+                        if (msg.Timestamp == null && change.Document.Metadata.HasPendingWrites)
+                        {
+                            msg.Timestamp = change.Document.GetValue<Timestamp>("timestamp", ServerTimestampBehavior.Estimate);
+                        }
+
                         onMessageAdded?.Invoke(msg);
                     }
                 }

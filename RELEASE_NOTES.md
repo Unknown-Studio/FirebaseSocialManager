@@ -1,5 +1,17 @@
 # Release Notes
 
+## 📦 Firebase Social Manager v0.4.2-preview
+
+A patch release to fix the "Local Echo" timestamp issue in Chat and Guild services.
+
+### 🐛 Bug Fixes
+
+- **Local Echo Timestamp Fix:** Resolved an issue where newly sent messages would have a `null` timestamp in the local listener.
+    - Updated `ChatService` and `GuildService` to use `ServerTimestampBehavior.Estimate`.
+    - This ensures messages appear with a valid (estimated) time immediately on the UI without waiting for server confirmation.
+
+---
+
 ## 📦 Firebase Social Manager v0.4.1-preview
 
 A patch release to align the new Presence module with the established `Suhdo.FSM` namespace convention and fix an incorrect Firebase API call.
@@ -152,5 +164,5 @@ This is the first pre-release version of the **Firebase Social Manager**, standa
 Install via Unity Package Manager using the following Git URL:
 
 ```
-https://github.com/Unknown-Studio/FirebaseSocialManager.git#v0.4.0-preview
+https://github.com/Unknown-Studio/FirebaseSocialManager.git#v0.4.2-preview
 ```
