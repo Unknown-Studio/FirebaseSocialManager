@@ -171,6 +171,42 @@ namespace Suhdo.FSM.Chat
             }
         }
 
+        public async Task<string> CreateRoomAsync(string targetUserId, CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrEmpty(CurrentUserId) || string.IsNullOrEmpty(targetUserId)) return string.Empty;
+
+            try
+            {
+                string roomId = GetChatRoomId(CurrentUserId, targetUserId);
+                DocumentReference roomRef = _db.Collection(COLLECTION_CHATS).Document(roomId);
+                DocumentSnapshot snapshot = await roomRef.GetSnapshotAsync();
+
+                if (!snapshot.Exists)
+                {
+                    var roomData = new Dictionary<string, object>
+                    {
+                        { "participants", new List<string> { CurrentUserId, targetUserId } },
+                        { "lastMessage", "" },
+                        { "lastMessageTime", FieldValue.ServerTimestamp },
+                        { "unreadCount", new Dictionary<string, object>
+                            {
+                                { CurrentUserId, 0 },
+                                { targetUserId, 0 }
+                            }
+                        }
+                    };
+                    await roomRef.SetAsync(roomData);
+                }
+
+                return roomId;
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"[ChatService] Lỗi CreateRoomAsync: {ex.Message}");
+                return string.Empty;
+            }
+        }
+
         public IDisposable ListenForNewMessages(string roomId, Action<ChatMessage> onMessageAdded)
         {
             // Thiết lập đầu thu dính vào Snapshot Listener với Limit chặn trên cùng để tiết kiệm read

@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.3-preview] - 2026-04-28
+
+### Added
+
+- **Chat Room Initialization:** Added `CreateRoomAsync` to `IChatService` and `ChatService`. This allows explicit creation of a chat room between users before sending the first message, ensuring metadata like `participants` and `unreadCount` are correctly initialized.
+
 ## [0.4.2-preview] - 2026-04-25
 
 ### Fixed

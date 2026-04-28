@@ -1,5 +1,18 @@
 # Release Notes
 
+## 📦 Firebase Social Manager v0.4.3-preview
+
+This release adds explicit chat room creation support to the Chat module.
+
+### ✨ New Features
+
+- **Chat Room Initialization:** Added `CreateRoomAsync` to `IChatService`.
+    - Allows initializing a private chat room between the current user and a target user without sending a message.
+    - Ensures `participants` and `unreadCount` (set to 0 for both users) are correctly established in Firestore.
+    - Deterministic `roomId` generation using `GetChatRoomId`.
+
+---
+
 ## 📦 Firebase Social Manager v0.4.2-preview
 
 A patch release to fix the "Local Echo" timestamp issue in Chat and Guild services.
@@ -164,5 +177,5 @@ This is the first pre-release version of the **Firebase Social Manager**, standa
 Install via Unity Package Manager using the following Git URL:
 
 ```
-https://github.com/Unknown-Studio/FirebaseSocialManager.git#v0.4.2-preview
+https://github.com/Unknown-Studio/FirebaseSocialManager.git#v0.4.3-preview
 ```
