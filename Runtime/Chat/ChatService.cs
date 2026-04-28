@@ -179,24 +179,20 @@ namespace Suhdo.FSM.Chat
             {
                 string roomId = GetChatRoomId(CurrentUserId, targetUserId);
                 DocumentReference roomRef = _db.Collection(COLLECTION_CHATS).Document(roomId);
-                DocumentSnapshot snapshot = await roomRef.GetSnapshotAsync();
 
-                if (!snapshot.Exists)
+                var roomData = new Dictionary<string, object>
                 {
-                    var roomData = new Dictionary<string, object>
-                    {
-                        { "participants", new List<string> { CurrentUserId, targetUserId } },
-                        { "lastMessage", "" },
-                        { "lastMessageTime", FieldValue.ServerTimestamp },
-                        { "unreadCount", new Dictionary<string, object>
-                            {
-                                { CurrentUserId, 0 },
-                                { targetUserId, 0 }
-                            }
+                    { "participants", new List<string> { CurrentUserId, targetUserId } },
+                    { "lastMessage", "" },
+                    { "lastMessageTime", FieldValue.ServerTimestamp },
+                    { "unreadCount", new Dictionary<string, object>
+                        {
+                            { CurrentUserId, 0 },
+                            { targetUserId, 0 }
                         }
-                    };
-                    await roomRef.SetAsync(roomData);
-                }
+                    }
+                };
+                await roomRef.SetAsync(roomData);
 
                 return roomId;
             }
