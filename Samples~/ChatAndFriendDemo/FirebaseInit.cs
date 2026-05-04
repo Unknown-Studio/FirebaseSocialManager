@@ -8,6 +8,7 @@ using Suhdo.FSM.Chat;
 using Suhdo.FSM.Friends;
 using Suhdo.FSM.Presence;
 using Suhdo.FSM.Profile;
+using Suhdo.FSM.Social;
 using UnityEngine;
 
 namespace Suhdo.FSM.Sample.FriendChat
@@ -19,6 +20,7 @@ namespace Suhdo.FSM.Sample.FriendChat
         public static IFriendService FriendService;
         public static IChatService ChatService;
         public static IPresenceService PresenceService;
+        public static SocialNotificationManager SocialNotificationManager;
 
         private void Awake()
         {
@@ -35,6 +37,11 @@ namespace Suhdo.FSM.Sample.FriendChat
                     FriendService = new FriendService(db, auth);
                     ChatService = new ChatService(db, auth);
                     PresenceService = new PresenceService(FirebaseDatabase.DefaultInstance, auth);
+                    SocialNotificationManager = new SocialNotificationManager(ChatService, FriendService, auth);
+                    
+                    SocialNotificationManager.OnNotificationChanged += () => {
+                        Debug.Log($"[SocialNotification] Chat: {SocialNotificationManager.ChatUnreadCount}, Friends: {SocialNotificationManager.FriendRequestCount}");
+                    };
 
                     await ProfileService.InitializeOrUpdateProfileAsync("PewPew", "0", "0");
                     await PresenceService.SetOnlineAsync();
@@ -69,6 +76,11 @@ namespace Suhdo.FSM.Sample.FriendChat
                     PlayerPrefs.SetString("UserId", FirebaseAuth.DefaultInstance.CurrentUser.UserId);
                 }
             });
+        }
+
+        private void OnDestroy()
+        {
+            SocialNotificationManager?.Dispose();
         }
     }
 }

@@ -175,5 +175,32 @@ namespace Suhdo.FSM.Friends
                 return false;
             }
         }
+
+        public IDisposable ListenForFriendRequests(Action<int> onCountChanged)
+        {
+            if (string.IsNullOrEmpty(CurrentUserId)) return null;
+
+            Query query = GetMyFriendsCollection().WhereEqualTo("status", "pending_received");
+
+            Action<QuerySnapshot> listener = (snapshot) =>
+            {
+                if (snapshot == null) return;
+                onCountChanged?.Invoke(snapshot.Count);
+            };
+
+            var listenerRegistration = query.Listen(listener);
+            return new ListenerDisposer(listenerRegistration);
+        }
+
+        private class ListenerDisposer : IDisposable
+        {
+            private ListenerRegistration _registration;
+            public ListenerDisposer(ListenerRegistration registration) => _registration = registration;
+            public void Dispose()
+            {
+                _registration?.Stop();
+                _registration = null;
+            }
+        }
     }
 }

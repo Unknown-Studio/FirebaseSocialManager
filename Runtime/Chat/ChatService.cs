@@ -238,6 +238,30 @@ namespace Suhdo.FSM.Chat
             return new ListenerDisposer(listenerRegistration);
         }
 
+        public IDisposable ListenForMyRooms(Action<List<PrivateChatRoom>> onRoomsUpdated)
+        {
+            if (string.IsNullOrEmpty(CurrentUserId)) return null;
+
+            Query query = _db.Collection(COLLECTION_CHATS).WhereArrayContains("participants", CurrentUserId);
+
+            Action<QuerySnapshot> listener = (snapshot) =>
+            {
+                if (snapshot == null) return;
+
+                List<PrivateChatRoom> rooms = new List<PrivateChatRoom>();
+                foreach (DocumentSnapshot doc in snapshot.Documents)
+                {
+                    var room = doc.ConvertTo<PrivateChatRoom>();
+                    room.ChatId = doc.Id;
+                    rooms.Add(room);
+                }
+                onRoomsUpdated?.Invoke(rooms);
+            };
+
+            var listenerRegistration = query.Listen(listener);
+            return new ListenerDisposer(listenerRegistration);
+        }
+
         // Tự động giải phóng GC Wrapper để Cấu trúc UI của Unity tự gọi dọn rác .Dispose() an toàn khi người dùng thoát khỏi Screen Chat
         private class ListenerDisposer : IDisposable
         {

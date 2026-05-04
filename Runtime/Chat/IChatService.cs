@@ -20,5 +20,10 @@ namespace Suhdo.FSM.Chat
         /// Tạo một cái vòi nước Lắng nghe tin nhắn mới dạng Realtime
         /// </summary>
         IDisposable ListenForNewMessages(string roomId, Action<ChatMessage> onMessageAdded);
+
+        /// <summary>
+        /// Lắng nghe tất cả các phòng chat của tôi để theo dõi unreadCount
+        /// </summary>
+        IDisposable ListenForMyRooms(Action<List<PrivateChatRoom>> onRoomsUpdated);
     }
 }

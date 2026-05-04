@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -28,5 +29,10 @@ namespace Suhdo.FSM.Friends
         /// Xóa xóa một người bạn khỏi danh sách
         /// </summary>
         Task<bool> RemoveFriendAsync(string targetUserId, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Lắng nghe số lượng lời mời kết bạn đang chờ (pending_received)
+        /// </summary>
+        IDisposable ListenForFriendRequests(Action<int> onCountChanged);
     }
 }
