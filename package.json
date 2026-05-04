@@ -1,6 +1,6 @@
 {
   "name": "com.suhdo.firebasesocialmanager",
-  "version": "0.4.4-preview",
+  "version": "0.4.5-preview",
   "displayName": "Firebase Social Manager",
   "description": "A package for managing Firebase social features including Chat, Friends, and Profiles.",
   "licensesUrl": "https://github.com/Unknown-Studio/FirebaseSocialManager/blob/main/LICENSE",
