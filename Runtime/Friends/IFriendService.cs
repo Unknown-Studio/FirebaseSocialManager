@@ -31,6 +31,11 @@ namespace Suhdo.FSM.Friends
         Task<bool> RemoveFriendAsync(string targetUserId, CancellationToken cancellationToken = default);
 
         /// <summary>
+        /// Xóa cache để ép buộc tải lại dữ liệu từ Firebase
+        /// </summary>
+        void InvalidateCache();
+
+        /// <summary>
         /// Lắng nghe số lượng lời mời kết bạn đang chờ (pending_received)
         /// </summary>
         IDisposable ListenForFriendRequests(Action<int> onCountChanged);

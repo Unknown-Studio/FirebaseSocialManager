@@ -6,6 +6,7 @@ using Firebase.Auth;
 using Firebase.Firestore;
 using Suhdo.FSM.Profile.Models;
 using Suhdo.FSM.Friends.Models;
+using Suhdo.FSM.Core;
 using UnityEngine;
 using Models_UserProfile = Suhdo.FSM.Profile.Models.UserProfile;
 using UserProfile = Suhdo.FSM.Profile.Models.UserProfile;
@@ -16,11 +17,13 @@ namespace Suhdo.FSM.Friends
     {
         private readonly FirebaseFirestore _db;
         private readonly FirebaseAuth _auth;
+        private readonly DataCache<List<FriendRecord>> _friendsCache;
 
-        public FriendService(FirebaseFirestore firestore, FirebaseAuth auth)
+        public FriendService(FirebaseFirestore firestore, FirebaseAuth auth, TimeSpan? cacheDuration = null)
         {
             _db = firestore;
             _auth = auth;
+            _friendsCache = new DataCache<List<FriendRecord>>(cacheDuration ?? TimeSpan.FromMinutes(5));
         }
 
         private string CurrentUserId => _auth.CurrentUser?.UserId;
@@ -31,8 +34,15 @@ namespace Suhdo.FSM.Friends
         {
             if (string.IsNullOrEmpty(CurrentUserId)) return new List<FriendRecord>();
 
+            if (!_friendsCache.IsExpired)
+            {
+                Debug.Log("[FriendService] Trả về danh sách bạn bè từ Cache.");
+                return _friendsCache.Data;
+            }
+
             try
             {
+                Debug.Log("[FriendService] Đang lấy danh sách bạn bè mới từ Firebase...");
                 QuerySnapshot snapshot = await GetMyFriendsCollection().GetSnapshotAsync();
                 List<FriendRecord> results = new List<FriendRecord>();
                 foreach (DocumentSnapshot doc in snapshot.Documents)
@@ -41,6 +51,9 @@ namespace Suhdo.FSM.Friends
                     record.Uid = doc.Id;
                     results.Add(record);
                 }
+
+                _friendsCache.Update(results);
+
                 return results;
             }
             catch (Exception ex)
@@ -48,6 +61,11 @@ namespace Suhdo.FSM.Friends
                 Debug.LogError($"[FriendService] Lỗi kéo danh sách bạn bè: {ex.Message}");
                 return new List<FriendRecord>();
             }
+        }
+
+        public void InvalidateCache()
+        {
+            _friendsCache.Invalidate();
         }
 
         public async Task<bool> SendFriendRequestAsync(string targetUserId, Models_UserProfile targetProfile, Models_UserProfile myProfile, CancellationToken cancellationToken = default)
@@ -107,6 +125,10 @@ namespace Suhdo.FSM.Friends
 
                 // Gửi toàn bộ lệnh lên chốt sổ Data
                 await batch.CommitAsync();
+
+                // Xóa cache để lần sau lấy data mới nhất
+                InvalidateCache();
+
                 return true;
             }
             catch (Exception ex)
@@ -144,6 +166,7 @@ namespace Suhdo.FSM.Friends
                 }
 
                 await batch.CommitAsync();
+                InvalidateCache();
                 return true;
             }
             catch (Exception ex)
@@ -167,6 +190,7 @@ namespace Suhdo.FSM.Friends
                 batch.Delete(theirRecordRef);
 
                 await batch.CommitAsync();
+                InvalidateCache();
                 return true;
             }
             catch (Exception ex)

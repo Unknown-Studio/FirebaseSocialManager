@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Firebase.Auth;
 using Firebase.Firestore;
 using Suhdo.FSM.Chat.Models;
+using Suhdo.FSM.Core;
 using UnityEngine;
 
 namespace Suhdo.FSM.Chat
@@ -15,11 +16,13 @@ namespace Suhdo.FSM.Chat
         
         private readonly FirebaseFirestore _db;
         private readonly FirebaseAuth _auth;
+        private readonly DataCache<List<PrivateChatRoom>> _roomsCache;
 
-        public ChatService(FirebaseFirestore firestore, FirebaseAuth auth)
+        public ChatService(FirebaseFirestore firestore, FirebaseAuth auth, TimeSpan? cacheDuration = null)
         {
             _db = firestore;
             _auth = auth;
+            _roomsCache = new DataCache<List<PrivateChatRoom>>(cacheDuration ?? TimeSpan.FromMinutes(5));
         }
 
         private string CurrentUserId => _auth.CurrentUser?.UserId;
@@ -54,8 +57,16 @@ namespace Suhdo.FSM.Chat
         {
             if (string.IsNullOrEmpty(CurrentUserId)) return new List<PrivateChatRoom>();
 
+            // Trả về cache nếu chưa hết hạn
+            if (!_roomsCache.IsExpired)
+            {
+                Debug.Log("[ChatService] Trả về danh sách phòng từ Cache.");
+                return _roomsCache.Data;
+            }
+
             try
             {
+                Debug.Log("[ChatService] Đang lấy danh sách phòng mới từ Firebase...");
                 // Gọi API lấy ra tất cả document thuộc Collection PrivateChats có chứa UID bằng hàm WhereArrayContains
                 QuerySnapshot snapshot = await _db.Collection(COLLECTION_CHATS)
                      .WhereArrayContains("participants", CurrentUserId)
@@ -68,6 +79,10 @@ namespace Suhdo.FSM.Chat
                     r.ChatId = doc.Id;
                     rooms.Add(r);
                 }
+
+                // Cập nhật vào cache
+                _roomsCache.Update(rooms);
+
                 return rooms;
             }
             catch (Exception ex)
@@ -75,6 +90,11 @@ namespace Suhdo.FSM.Chat
                 Debug.LogError($"[ChatService] Lỗi FetchAllMyChatRoomsAsync: {ex.Message}");
                 return new List<PrivateChatRoom>();
             }
+        }
+
+        public void InvalidateCache()
+        {
+            _roomsCache.Invalidate();
         }
 
         public async Task<List<ChatMessage>> GetMessagesHistoryAsync(string roomId, int limit = 50, CancellationToken cancellationToken = default)
@@ -142,6 +162,10 @@ namespace Suhdo.FSM.Chat
                 batch.Set(roomRef, roomUpdates, SetOptions.MergeAll);
 
                 await batch.CommitAsync();
+                
+                // Xóa cache để lần lấy data tiếp theo sẽ lấy từ Firebase
+                InvalidateCache();
+                
                 return true;
             }
             catch (Exception ex)
@@ -162,6 +186,10 @@ namespace Suhdo.FSM.Chat
                     { new FieldPath("unreadCount", CurrentUserId), 0 }
                 };
                 await roomRef.UpdateAsync(roomUpdates);
+
+                // Xóa cache
+                InvalidateCache();
+
                 return true;
             }
             catch (Exception ex)
@@ -193,6 +221,9 @@ namespace Suhdo.FSM.Chat
                     }
                 };
                 await roomRef.SetAsync(roomData);
+
+                // Xóa cache
+                InvalidateCache();
 
                 return roomId;
             }
