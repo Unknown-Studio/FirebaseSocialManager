@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Firebase.Auth;
 using Suhdo.FSM.Chat;
 using Suhdo.FSM.Chat.Models;
@@ -9,7 +8,28 @@ using UnityEngine;
 
 namespace Suhdo.FSM.Social
 {
-    public class SocialNotificationManager : IDisposable
+    /// <summary>
+    /// Interface cho hệ thống quản lý thông báo xã hội.
+    /// Giúp việc Dependency Injection và Unit Test dễ dàng hơn.
+    /// </summary>
+    public interface ISocialNotificationManager : IDisposable
+    {
+        int ChatUnreadCount { get; }
+        int FriendRequestCount { get; }
+        int GuildNotificationCount { get; }
+        int TotalNotificationCount { get; }
+
+        event Action OnNotificationChanged;
+
+        void StartListening();
+        void StopListening();
+    }
+
+    /// <summary>
+    /// Quản lý tập trung các thông báo từ nhiều nguồn khác nhau (Chat, Friends, Guilds).
+    /// Được thiết kế để linh hoạt cho nhiều dự án khác nhau.
+    /// </summary>
+    public class SocialNotificationManager : ISocialNotificationManager
     {
         private readonly IChatService _chatService;
         private readonly IFriendService _friendService;
@@ -17,27 +37,39 @@ namespace Suhdo.FSM.Social
 
         private IDisposable _chatListener;
         private IDisposable _friendListener;
+        private IDisposable _guildListener;
 
-        public int ChatUnreadCount { get; private set; }
-        public int FriendRequestCount { get; private set; }
-        public int TotalUnreadCount => ChatUnreadCount + FriendRequestCount;
+        private int _chatUnreadCount;
+        private int _friendRequestCount;
+        private int _guildNotificationCount;
+
+        public int ChatUnreadCount => _chatUnreadCount;
+        public int FriendRequestCount => _friendRequestCount;
+        public int GuildNotificationCount => _guildNotificationCount;
+        public int TotalNotificationCount => _chatUnreadCount + _friendRequestCount + _guildNotificationCount;
 
         public event Action OnNotificationChanged;
 
-        public SocialNotificationManager(IChatService chatService, IFriendService friendService, FirebaseAuth auth)
+        /// <summary>
+        /// Khởi tạo Manager. Các service có thể là null nếu dự án không sử dụng tính năng đó.
+        /// </summary>
+        public SocialNotificationManager(
+            FirebaseAuth auth,
+            IChatService chatService = null,
+            IFriendService friendService = null)
         {
+            _auth = auth ?? throw new ArgumentNullException(nameof(auth));
             _chatService = chatService;
             _friendService = friendService;
-            _auth = auth;
 
-            // Nếu đã đăng nhập thì bắt đầu lắng nghe ngay
+            // Đăng ký theo dõi trạng thái Auth
+            _auth.StateChanged += HandleAuthStateChanged;
+
+            // Nếu đã đăng nhập thì bắt đầu ngay
             if (_auth.CurrentUser != null)
             {
                 StartListening();
             }
-
-            // Theo dõi trạng thái đăng nhập để bật/tắt listener
-            _auth.StateChanged += HandleAuthStateChanged;
         }
 
         private void HandleAuthStateChanged(object sender, EventArgs e)
@@ -57,29 +89,38 @@ namespace Suhdo.FSM.Social
         {
             StopListening();
 
-            string currentUserId = _auth.CurrentUser?.UserId;
-            if (string.IsNullOrEmpty(currentUserId)) return;
+            string userId = _auth.CurrentUser?.UserId;
+            if (string.IsNullOrEmpty(userId)) return;
 
-            // 1. Lắng nghe tin nhắn chat
-            _chatListener = _chatService.ListenForMyRooms(rooms =>
+            // Lắng nghe Chat nếu service được cung cấp
+            if (_chatService != null)
             {
-                ChatUnreadCount = 0;
-                foreach (var room in rooms)
+                _chatListener = _chatService.ListenForMyRooms(rooms =>
                 {
-                    if (room.UnreadCount != null && room.UnreadCount.TryGetValue(currentUserId, out int count))
+                    int totalUnread = 0;
+                    foreach (var room in rooms)
                     {
-                        ChatUnreadCount += count;
+                        if (room.UnreadCount != null && room.UnreadCount.TryGetValue(userId, out int count))
+                        {
+                            totalUnread += count;
+                        }
                     }
-                }
-                NotifyChanged();
-            });
+                    _chatUnreadCount = totalUnread;
+                    NotifyChanged();
+                });
+            }
 
-            // 2. Lắng nghe lời mời kết bạn
-            _friendListener = _friendService.ListenForFriendRequests(count =>
+            // Lắng nghe Friend Requests nếu service được cung cấp
+            if (_friendService != null)
             {
-                FriendRequestCount = count;
-                NotifyChanged();
-            });
+                _friendListener = _friendService.ListenForFriendRequests(count =>
+                {
+                    _friendRequestCount = count;
+                    NotifyChanged();
+                });
+            }
+            
+            // TODO: Lắng nghe Guild Notifications nếu có service tương ứng trong tương lai
         }
 
         public void StopListening()
@@ -89,12 +130,16 @@ namespace Suhdo.FSM.Social
 
             _friendListener?.Dispose();
             _friendListener = null;
+
+            _guildListener?.Dispose();
+            _guildListener = null;
         }
 
         private void ResetCounts()
         {
-            ChatUnreadCount = 0;
-            FriendRequestCount = 0;
+            _chatUnreadCount = 0;
+            _friendRequestCount = 0;
+            _guildNotificationCount = 0;
             NotifyChanged();
         }
 
@@ -105,7 +150,10 @@ namespace Suhdo.FSM.Social
 
         public void Dispose()
         {
-            _auth.StateChanged -= HandleAuthStateChanged;
+            if (_auth != null)
+            {
+                _auth.StateChanged -= HandleAuthStateChanged;
+            }
             StopListening();
         }
     }

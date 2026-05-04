@@ -20,7 +20,7 @@ namespace Suhdo.FSM.Sample.FriendChat
         public static IFriendService FriendService;
         public static IChatService ChatService;
         public static IPresenceService PresenceService;
-        public static SocialNotificationManager SocialNotificationManager;
+        public static ISocialNotificationManager SocialNotificationManager;
 
         private void Awake()
         {
@@ -37,7 +37,7 @@ namespace Suhdo.FSM.Sample.FriendChat
                     FriendService = new FriendService(db, auth);
                     ChatService = new ChatService(db, auth);
                     PresenceService = new PresenceService(FirebaseDatabase.DefaultInstance, auth);
-                    SocialNotificationManager = new SocialNotificationManager(ChatService, FriendService, auth);
+                    SocialNotificationManager = new SocialNotificationManager(auth, ChatService, FriendService);
                     
                     SocialNotificationManager.OnNotificationChanged += () => {
                         Debug.Log($"[SocialNotification] Chat: {SocialNotificationManager.ChatUnreadCount}, Friends: {SocialNotificationManager.FriendRequestCount}");
