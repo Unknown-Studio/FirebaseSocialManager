@@ -43,6 +43,8 @@ namespace Suhdo.FSM.Sample.FriendChat
                         Debug.Log($"[SocialNotification] Chat: {SocialNotificationManager.ChatUnreadCount}, Friends: {SocialNotificationManager.FriendRequestCount}");
                     };
 
+                    await SocialNotificationManager.FetchInitialCountsAsync();
+
                     await ProfileService.InitializeOrUpdateProfileAsync("PewPew", "0", "0");
                     await PresenceService.SetOnlineAsync();
                 }

@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using Firebase.Auth;
 using Suhdo.FSM.Chat;
 using Suhdo.FSM.Chat.Models;
@@ -23,6 +25,7 @@ namespace Suhdo.FSM.Social
 
         void StartListening();
         void StopListening();
+        Task FetchInitialCountsAsync();
     }
 
     /// <summary>
@@ -133,6 +136,36 @@ namespace Suhdo.FSM.Social
 
             _guildListener?.Dispose();
             _guildListener = null;
+        }
+
+        public async Task FetchInitialCountsAsync()
+        {
+            string userId = _auth.CurrentUser?.UserId;
+            if (string.IsNullOrEmpty(userId)) return;
+
+            // 1. Fetch Chat Unread Count
+            if (_chatService != null)
+            {
+                var rooms = await _chatService.FetchAllMyChatRoomsAsync();
+                int totalUnread = 0;
+                foreach (var room in rooms)
+                {
+                    if (room.UnreadCount != null && room.UnreadCount.TryGetValue(userId, out int count))
+                    {
+                        totalUnread += count;
+                    }
+                }
+                _chatUnreadCount = totalUnread;
+            }
+
+            // 2. Fetch Friend Request Count
+            if (_friendService != null)
+            {
+                var friends = await _friendService.FetchAllFriendsAsync();
+                _friendRequestCount = friends.Count(f => f.Status == "pending_received");
+            }
+
+            NotifyChanged();
         }
 
         private void ResetCounts()
