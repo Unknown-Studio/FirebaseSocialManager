@@ -1,12 +1,9 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Firebase.Auth;
 using Suhdo.FSM.Chat;
-using Suhdo.FSM.Chat.Models;
 using Suhdo.FSM.Friends;
-using UnityEngine;
 
 namespace Suhdo.FSM.Social
 {
@@ -109,6 +106,7 @@ namespace Suhdo.FSM.Social
                         }
                     }
                     _chatUnreadCount = totalUnread;
+                    _chatService.InvalidateCache();
                     NotifyChanged();
                 });
             }
@@ -119,6 +117,7 @@ namespace Suhdo.FSM.Social
                 _friendListener = _friendService.ListenForFriendRequests(count =>
                 {
                     _friendRequestCount = count;
+                    _friendService.InvalidateCache();
                     NotifyChanged();
                 });
             }
