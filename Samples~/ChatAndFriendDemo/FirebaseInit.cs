@@ -6,6 +6,7 @@ using Firebase.Firestore;
 using Firebase.Database;
 using Suhdo.FSM.Chat;
 using Suhdo.FSM.Friends;
+using Suhdo.FSM.Friends.Models;
 using Suhdo.FSM.Presence;
 using Suhdo.FSM.Profile;
 using Suhdo.FSM.Social;
@@ -17,7 +18,7 @@ namespace Suhdo.FSM.Sample.FriendChat
     {
         public FirebaseApp app;
         public static IProfileService ProfileService;
-        public static IFriendService FriendService;
+        public static IFriendService<FriendRecord> FriendService;
         public static IChatService ChatService;
         public static IPresenceService PresenceService;
         public static ISocialNotificationManager SocialNotificationManager;
@@ -34,7 +35,7 @@ namespace Suhdo.FSM.Sample.FriendChat
                     var db = FirebaseFirestore.DefaultInstance;
                     var auth = FirebaseAuth.DefaultInstance;
                     ProfileService = new ProfileService(db, auth);
-                    FriendService = new FriendService(db, auth);
+                    FriendService = new FriendService<FriendRecord>(db, auth);
                     ChatService = new ChatService(db, auth);
                     PresenceService = new PresenceService(FirebaseDatabase.DefaultInstance, auth);
                     SocialNotificationManager = new SocialNotificationManager(auth, ChatService, FriendService);

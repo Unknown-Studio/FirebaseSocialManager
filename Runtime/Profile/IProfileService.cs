@@ -26,6 +26,9 @@ namespace Suhdo.FSM.Profile
         /// </summary>
         Task<UserProfile> FindProfileByFriendCodeAsync(string friendCode, CancellationToken cancellationToken = default);
 
-
+        /// <summary>
+        /// Lấy hàng loạt hồ sơ công khai (Dùng cho chiến lược Lazy Load danh sách bạn bè)
+        /// </summary>
+        Task<System.Collections.Generic.Dictionary<string, UserProfile>> FetchPublicProfilesAsync(System.Collections.Generic.IEnumerable<string> userIds, CancellationToken cancellationToken = default);
     }
 }

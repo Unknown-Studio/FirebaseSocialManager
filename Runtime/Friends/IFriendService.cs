@@ -7,18 +7,23 @@ using Suhdo.FSM.Profile.Models;
 
 namespace Suhdo.FSM.Friends
 {
-    public interface IFriendService
+    public interface IFriendService<T> where T : FriendRecord, new()
     {
         /// <summary>
         /// Lấy toàn bộ danh sách liên quan đến bạn bè
         /// </summary>
-        Task<List<FriendRecord>> FetchAllFriendsAsync(CancellationToken cancellationToken = default);
+        Task<List<T>> FetchAllFriendsAsync(CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Gửi yêu cầu kết bạn 
-        /// (Sử dụng dữ liệu của MyProfile và TargetProfile để gửi File đính kèm lưu phi chuẩn hóa)
+        /// Gửi yêu cầu kết bạn với khả năng điền dữ liệu tùy biến qua lambda
         /// </summary>
-        Task<bool> SendFriendRequestAsync(string targetUserId, UserProfile targetProfile, UserProfile myProfile, CancellationToken cancellationToken = default);
+        Task<bool> SendFriendRequestAsync(
+            string targetUserId, 
+            UserProfile targetProfile, 
+            UserProfile myProfile, 
+            Action<T> onPopulateTargetRecord = null,
+            Action<T> onPopulateMyRecord = null,
+            CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Đồng ý hoặc Từ chối yêu cầu kết bạn

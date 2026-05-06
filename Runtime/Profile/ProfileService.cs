@@ -3,11 +3,9 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Firebase.Auth;
-using Firebase.Database;
 using Firebase.Firestore;
-using Suhdo.FSM.Profile.Models;
+using Suhdo.FSM.Core;
 using UnityEngine;
-using UserProfile = Suhdo.FSM.Profile.Models.UserProfile;
 
 namespace Suhdo.FSM.Profile
 {
@@ -21,12 +19,15 @@ namespace Suhdo.FSM.Profile
         private readonly FirebaseAuth _auth;
 
         private Models_UserProfile _cachedMyProfile;
+        private readonly Dictionary<string, DataCache<Models_UserProfile>> _publicProfilesCache = new();
+        private readonly TimeSpan _profileCacheDuration;
 
         // Dependency Injection Setup: Nhận instance truyền vào
-        public ProfileService(FirebaseFirestore firestore, FirebaseAuth auth)
+        public ProfileService(FirebaseFirestore firestore, FirebaseAuth auth, TimeSpan? cacheDuration = null)
         {
             _db = firestore;
             _auth = auth;
+            _profileCacheDuration = cacheDuration ?? TimeSpan.FromMinutes(1);
         }
 
         private string CurrentUserId => _auth.CurrentUser?.UserId;
@@ -129,6 +130,12 @@ namespace Suhdo.FSM.Profile
         {
             if (string.IsNullOrEmpty(userId)) return null;
 
+            // 1. Kiểm tra Cache trước
+            if (_publicProfilesCache.TryGetValue(userId, out var cache) && !cache.IsExpired)
+            {
+                return cache.Data;
+            }
+
             try
             {
                 DocumentReference userDoc = _db.Collection(COLLECTION_USERS).Document(userId);
@@ -139,6 +146,13 @@ namespace Suhdo.FSM.Profile
                     // Tự động deserialize toàn bộ trường
                     Models_UserProfile profile = snapshot.ConvertTo<Models_UserProfile>();
                     profile.Uid = snapshot.Id; 
+                    
+                    // 2. Cập nhật Cache
+                    if (!_publicProfilesCache.ContainsKey(userId))
+                        _publicProfilesCache[userId] = new DataCache<Models_UserProfile>(_profileCacheDuration);
+                    
+                    _publicProfilesCache[userId].Update(profile);
+                    
                     return profile;
                 }
                 
@@ -220,5 +234,61 @@ namespace Suhdo.FSM.Profile
             return GenerateRandomShortCode() + UnityEngine.Random.Range(10, 99).ToString();
         }
 
+        public async Task<Dictionary<string, Models_UserProfile>> FetchPublicProfilesAsync(IEnumerable<string> userIds, CancellationToken cancellationToken = default)
+        {
+            var results = new Dictionary<string, Models_UserProfile>();
+            var idsToFetch = new List<string>();
+
+            // 1. Phân loại: Lấy từ Cache hoặc đưa vào danh sách cần Fetch
+            foreach (var id in userIds)
+            {
+                if (string.IsNullOrEmpty(id)) continue;
+
+                if (_publicProfilesCache.TryGetValue(id, out var cache) && !cache.IsExpired)
+                {
+                    results[id] = cache.Data;
+                }
+                else
+                {
+                    idsToFetch.Add(id);
+                }
+            }
+
+            if (idsToFetch.Count == 0) return results;
+
+            try
+            {
+                // Firestore limit for WhereIn is 30 elements
+                const int batchSize = 30;
+                for (int i = 0; i < idsToFetch.Count; i += batchSize)
+                {
+                    var currentBatch = idsToFetch.GetRange(i, Math.Min(batchSize, idsToFetch.Count - i));
+                    
+                    QuerySnapshot snapshot = await _db.Collection(COLLECTION_USERS)
+                        .WhereIn(FieldPath.DocumentId, currentBatch)
+                        .GetSnapshotAsync();
+
+                    foreach (var doc in snapshot.Documents)
+                    {
+                        var profile = doc.ConvertTo<Models_UserProfile>();
+                        profile.Uid = doc.Id;
+                        
+                        // 2. Cập nhật Cache cho từng User mới fetch về
+                        if (!_publicProfilesCache.ContainsKey(doc.Id))
+                            _publicProfilesCache[doc.Id] = new DataCache<Models_UserProfile>(_profileCacheDuration);
+                        
+                        _publicProfilesCache[doc.Id].Update(profile);
+                        
+                        results[doc.Id] = profile;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"[ProfileService] Lỗi Batch Fetch Profiles: {ex.Message}");
+            }
+
+            return results;
+        }
     }
 }

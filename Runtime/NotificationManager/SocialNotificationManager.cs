@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Firebase.Auth;
 using Suhdo.FSM.Chat;
 using Suhdo.FSM.Friends;
+using Suhdo.FSM.Friends.Models;
 
 namespace Suhdo.FSM.Social
 {
@@ -32,7 +33,7 @@ namespace Suhdo.FSM.Social
     public class SocialNotificationManager : ISocialNotificationManager
     {
         private readonly IChatService _chatService;
-        private readonly IFriendService _friendService;
+        private readonly IFriendService<FriendRecord> _friendService;
         private readonly FirebaseAuth _auth;
 
         private IDisposable _chatListener;
@@ -56,7 +57,7 @@ namespace Suhdo.FSM.Social
         public SocialNotificationManager(
             FirebaseAuth auth,
             IChatService chatService = null,
-            IFriendService friendService = null)
+            IFriendService<FriendRecord> friendService = null)
         {
             _auth = auth ?? throw new ArgumentNullException(nameof(auth));
             _chatService = chatService;

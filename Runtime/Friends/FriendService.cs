@@ -4,7 +4,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Firebase.Auth;
 using Firebase.Firestore;
-using Suhdo.FSM.Profile.Models;
 using Suhdo.FSM.Friends.Models;
 using Suhdo.FSM.Core;
 using UnityEngine;
@@ -13,26 +12,26 @@ using UserProfile = Suhdo.FSM.Profile.Models.UserProfile;
 
 namespace Suhdo.FSM.Friends
 {
-    public class FriendService : IFriendService
+    public class FriendService<T> : IFriendService<T> where T : FriendRecord, new()
     {
         private readonly FirebaseFirestore _db;
         private readonly FirebaseAuth _auth;
-        private readonly DataCache<List<FriendRecord>> _friendsCache;
+        private readonly DataCache<List<T>> _friendsCache;
 
         public FriendService(FirebaseFirestore firestore, FirebaseAuth auth, TimeSpan? cacheDuration = null)
         {
             _db = firestore;
             _auth = auth;
-            _friendsCache = new DataCache<List<FriendRecord>>(cacheDuration ?? TimeSpan.FromMinutes(5));
+            _friendsCache = new DataCache<List<T>>(cacheDuration ?? TimeSpan.FromMinutes(5));
         }
 
         private string CurrentUserId => _auth.CurrentUser?.UserId;
         private CollectionReference GetMyFriendsCollection() => _db.Collection("users").Document(CurrentUserId).Collection("friends");
         private CollectionReference GetTargetFriendsCollection(string targetUid) => _db.Collection("users").Document(targetUid).Collection("friends");
 
-        public async Task<List<FriendRecord>> FetchAllFriendsAsync(CancellationToken cancellationToken = default)
+        public async Task<List<T>> FetchAllFriendsAsync(CancellationToken cancellationToken = default)
         {
-            if (string.IsNullOrEmpty(CurrentUserId)) return new List<FriendRecord>();
+            if (string.IsNullOrEmpty(CurrentUserId)) return new List<T>();
 
             if (!_friendsCache.IsExpired)
             {
@@ -44,10 +43,10 @@ namespace Suhdo.FSM.Friends
             {
                 Debug.Log("[FriendService] Đang lấy danh sách bạn bè mới từ Firebase...");
                 QuerySnapshot snapshot = await GetMyFriendsCollection().GetSnapshotAsync();
-                List<FriendRecord> results = new List<FriendRecord>();
+                List<T> results = new List<T>();
                 foreach (DocumentSnapshot doc in snapshot.Documents)
                 {
-                    var record = doc.ConvertTo<FriendRecord>();
+                    var record = doc.ConvertTo<T>();
                     record.Uid = doc.Id;
                     results.Add(record);
                 }
@@ -59,7 +58,7 @@ namespace Suhdo.FSM.Friends
             catch (Exception ex)
             {
                 Debug.LogError($"[FriendService] Lỗi kéo danh sách bạn bè: {ex.Message}");
-                return new List<FriendRecord>();
+                return new List<T>();
             }
         }
 
@@ -68,7 +67,13 @@ namespace Suhdo.FSM.Friends
             _friendsCache.Invalidate();
         }
 
-        public async Task<bool> SendFriendRequestAsync(string targetUserId, Models_UserProfile targetProfile, Models_UserProfile myProfile, CancellationToken cancellationToken = default)
+        public async Task<bool> SendFriendRequestAsync(
+            string targetUserId, 
+            UserProfile targetProfile, 
+            UserProfile myProfile, 
+            Action<T> onPopulateTargetRecord = null,
+            Action<T> onPopulateMyRecord = null,
+            CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrEmpty(CurrentUserId) || targetUserId == CurrentUserId) return false;
 
@@ -76,20 +81,17 @@ namespace Suhdo.FSM.Friends
             {
                 DocumentReference myRecordRef = GetMyFriendsCollection().Document(targetUserId);
                 
-                // Kiểm tra xem đã có bản ghi tương tác nào giữa 2 người chưa (Ngăn chặn A và B gửi yêu cầu đè lên nhau)
                 DocumentSnapshot existingSnap = await myRecordRef.GetSnapshotAsync();
                 if (existingSnap.Exists)
                 {
                     string currentStatus = existingSnap.GetValue<string>("status");
 
-                    // Nếu đối tượng đã gửi cho mình trước (mình có pending_received), thì thao tác AddFriend của mình được tính là Bấm Đồng Ý!
                     if (currentStatus == "pending_received")
                     {
                         Debug.Log("[FriendService] Đối phương đã mời bạn trước đó, hệ thống sẽ tự động Accept kết bạn chéo!");
                         return await RespondToFriendRequestAsync(targetUserId, true, cancellationToken);
                     }
                     
-                    // Chặn hành spam nút gửi khi đã có yêu cầu hoặc đã là bạn rồi
                     if (currentStatus == "pending_sent" || currentStatus == "accepted")
                     {
                         Debug.Log("[FriendService] Yêu cầu xin kết bạn đã tồn tại từ trước.");
@@ -97,36 +99,28 @@ namespace Suhdo.FSM.Friends
                     }
                 }
 
-                // Nếu Profile hoàn toàn mới, dùng WriteBatch để tạo nhánh yêu cầu an toàn 2 chiều
                 WriteBatch batch = _db.StartBatch();
 
                 // 1. Phía mình thiết lập đối phương là pending_sent
-                var myRecordData = new FriendRecord
+                var myRecordData = new T
                 {
                     Status = "pending_sent",
-                    FriendName = targetProfile.DisplayName,
-                    AvatarId = targetProfile.AvatarId,
-                    FrameId = targetProfile.FrameId,
                     UpdatedAt = FieldValue.ServerTimestamp
                 };
+                onPopulateTargetRecord?.Invoke(myRecordData);
                 batch.Set(myRecordRef, myRecordData, SetOptions.MergeAll);
 
                 // 2. Phía bạn kia phát hiện có ng add sẽ nhận pending_received
                 DocumentReference theirRecordRef = GetTargetFriendsCollection(targetUserId).Document(CurrentUserId);
-                var theirRecordData = new FriendRecord
+                var theirRecordData = new T
                 {
                     Status = "pending_received",
-                    FriendName = myProfile.DisplayName,
-                    AvatarId = myProfile.AvatarId,
-                    FrameId = myProfile.FrameId,
                     UpdatedAt = FieldValue.ServerTimestamp
                 };
+                onPopulateMyRecord?.Invoke(theirRecordData);
                 batch.Set(theirRecordRef, theirRecordData, SetOptions.MergeAll);
 
-                // Gửi toàn bộ lệnh lên chốt sổ Data
                 await batch.CommitAsync();
-
-                // Xóa cache để lần sau lấy data mới nhất
                 InvalidateCache();
 
                 return true;
@@ -160,7 +154,6 @@ namespace Suhdo.FSM.Friends
                 }
                 else
                 {
-                    // Nếu từ chối thì xóa lun mối liên kết tạm thời để nhẹ Data
                     batch.Delete(myRecordRef);
                     batch.Delete(theirRecordRef);
                 }
