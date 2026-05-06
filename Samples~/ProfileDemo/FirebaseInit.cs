@@ -4,13 +4,15 @@ using Firebase.Auth;
 using Firebase.Extensions;
 using Firebase.Firestore;
 using Suhdo.FSM.Profile;
+using Suhdo.FSM.Profile.Models;
 using UnityEngine;
 
 namespace Suhdo.FSM.Sample.Profile
 {
     public class FirebaseInit : MonoBehaviour
     {
-        public static IProfileService ProfileService;
+        // Khởi tạo với kiểu DemoProfile để đồng bộ với ProfileTestUI
+        public static IProfileService<DemoProfile> ProfileService;
 
         private void Awake()
         {
@@ -22,8 +24,16 @@ namespace Suhdo.FSM.Sample.Profile
                     await AutoLoginAnonymous();
                     var db = FirebaseFirestore.DefaultInstance;
                     var auth = FirebaseAuth.DefaultInstance;
-                    ProfileService = new ProfileService(db, auth);
-                    await ProfileService.InitializeOrUpdateProfileAsync("Player", "0", "0");
+                    
+                    ProfileService = new ProfileService<DemoProfile>(db, auth);
+                    
+                    await ProfileService.UpdateMyProfileAsync(p => {
+                        p.DisplayName = "Player";
+                        p.AvatarId = "0";
+                        p.FrameId = "0";
+                        p.Level = 1;
+                        p.GuildId = "";
+                    });
                 }
                 else
                 {

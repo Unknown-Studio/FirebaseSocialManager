@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Suhdo.FSM.Friends.Models;
-using Suhdo.FSM.Profile.Models;
 
 namespace Suhdo.FSM.Friends
 {
@@ -19,8 +18,6 @@ namespace Suhdo.FSM.Friends
         /// </summary>
         Task<bool> SendFriendRequestAsync(
             string targetUserId, 
-            UserProfile targetProfile, 
-            UserProfile myProfile, 
             Action<T> onPopulateTargetRecord = null,
             Action<T> onPopulateMyRecord = null,
             CancellationToken cancellationToken = default);

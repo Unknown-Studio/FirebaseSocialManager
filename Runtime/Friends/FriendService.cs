@@ -7,8 +7,6 @@ using Firebase.Firestore;
 using Suhdo.FSM.Friends.Models;
 using Suhdo.FSM.Core;
 using UnityEngine;
-using Models_UserProfile = Suhdo.FSM.Profile.Models.UserProfile;
-using UserProfile = Suhdo.FSM.Profile.Models.UserProfile;
 
 namespace Suhdo.FSM.Friends
 {
@@ -69,8 +67,6 @@ namespace Suhdo.FSM.Friends
 
         public async Task<bool> SendFriendRequestAsync(
             string targetUserId, 
-            UserProfile targetProfile, 
-            UserProfile myProfile, 
             Action<T> onPopulateTargetRecord = null,
             Action<T> onPopulateMyRecord = null,
             CancellationToken cancellationToken = default)

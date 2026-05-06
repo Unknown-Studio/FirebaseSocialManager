@@ -6,23 +6,21 @@ using Firebase.Auth;
 using Firebase.Firestore;
 using Suhdo.FSM.Core;
 using UnityEngine;
+using UserProfile = Suhdo.FSM.Profile.Models.UserProfile;
 
 namespace Suhdo.FSM.Profile
 {
-    using Models_UserProfile = Models.UserProfile;
-
-    public class ProfileService : IProfileService
+    public class ProfileService<TProfile> : IProfileService<TProfile> where TProfile : UserProfile, new()
     {
         private const string COLLECTION_USERS = "users";
         
         private readonly FirebaseFirestore _db;
         private readonly FirebaseAuth _auth;
 
-        private Models_UserProfile _cachedMyProfile;
-        private readonly Dictionary<string, DataCache<Models_UserProfile>> _publicProfilesCache = new();
+        private TProfile _cachedMyProfile;
+        private readonly Dictionary<string, DataCache<TProfile>> _publicProfilesCache = new();
         private readonly TimeSpan _profileCacheDuration;
 
-        // Dependency Injection Setup: Nhận instance truyền vào
         public ProfileService(FirebaseFirestore firestore, FirebaseAuth auth, TimeSpan? cacheDuration = null)
         {
             _db = firestore;
@@ -32,7 +30,7 @@ namespace Suhdo.FSM.Profile
 
         private string CurrentUserId => _auth.CurrentUser?.UserId;
 
-        public async Task<bool> InitializeOrUpdateProfileAsync(string displayName, string avatarId, string frameId, CancellationToken cancellationToken = default)
+        public async Task<bool> UpdateMyProfileAsync(Action<TProfile> updateAction, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrEmpty(CurrentUserId))
             {
@@ -43,94 +41,70 @@ namespace Suhdo.FSM.Profile
             try
             {
                 DocumentReference userDoc = _db.Collection(COLLECTION_USERS).Document(CurrentUserId);
-                
-                // GetSnapshotAsync của Firebase trả về System.Threading.Tasks.Task
                 DocumentSnapshot snapshot = await userDoc.GetSnapshotAsync();
                 
+                TProfile profile;
+                bool isNew = false;
+
                 if (snapshot.Exists)
                 {
-                    // Cập nhật record (Bảo mật: client không thể gửi trường Level, TotalScore được nhờ Rule)
-                    var updates = new Dictionary<string, object>
-                    {
-                        { "displayName", displayName },
-                        { "avatarId", avatarId },
-                        { "frameId", frameId },
-                        { "lastLogin", FieldValue.ServerTimestamp }
-                    };
-                    
-                    // Tự động gán mã FriendCode nếu profile cũ chưa từng được sinh mã
-                    var oldProfile = snapshot.ConvertTo<Models_UserProfile>();
-                    if (string.IsNullOrEmpty(oldProfile.FriendCode))
-                    {
-                        updates.Add("friendCode", await GenerateUniqueFriendCodeAsync(cancellationToken));
-                    }
-                    
-                    await userDoc.UpdateAsync(updates);
+                    profile = snapshot.ConvertTo<TProfile>();
                 }
                 else
                 {
-                    // Dữ liệu tạo mới dựa hoàn toàn vào Model (Type safe) thay vì Dictionary json
-                    var newProfile = new Models_UserProfile
-                    {
-                        DisplayName = displayName,
-                        AvatarId = avatarId,
-                        FrameId = frameId,
-                        FriendCode = await GenerateUniqueFriendCodeAsync(cancellationToken), // Khởi tạo ngẫu nhiên có Validate Check Duplicate 
-                        Level = 1,
-                        GuildId = "",
-                        ServerCreatedAt = FieldValue.ServerTimestamp,
-                        LastLogin = FieldValue.ServerTimestamp
-                    };
-                    
-                    // SetOptions.MergeAll để đảm bảo an toàn ghi đè field
-                    await userDoc.SetAsync(newProfile, SetOptions.MergeAll);
+                    profile = new TProfile();
+                    profile.ServerCreatedAt = FieldValue.ServerTimestamp;
+                    isNew = true;
                 }
 
-                _cachedMyProfile = null; // Clean cache nếu fetch
+                // Thực thi logic cập nhật từ phía Client (Project-specific)
+                updateAction?.Invoke(profile);
+                
+                // Luôn cập nhật các trường hệ thống cốt lõi
+                profile.LastLogin = FieldValue.ServerTimestamp;
+                
+                // Đảm bảo có FriendCode
+                if (string.IsNullOrEmpty(profile.FriendCode))
+                {
+                    profile.FriendCode = await GenerateUniqueFriendCodeAsync(cancellationToken);
+                }
+
+                if (isNew)
+                {
+                    await userDoc.SetAsync(profile);
+                }
+                else
+                {
+                    // Convert sang Dictionary để Update (Tránh ghi đè toàn bộ nếu dùng Set với T)
+                    // Hoặc đơn giản là dùng SetAsync(profile, SetOptions.MergeAll)
+                    await userDoc.SetAsync(profile, SetOptions.MergeAll);
+                }
+
+                _cachedMyProfile = null; // Reset cache bản thân
                 return true;
             }
             catch (Exception ex)
             {
-                Debug.LogError($"[ProfileService] Lỗi khi tạo/update file: {ex.Message}");
+                Debug.LogError($"[ProfileService] Lỗi khi cập nhật profile: {ex.Message}");
                 return false;
             }
         }
 
-        public async Task<Models_UserProfile> FetchMyProfileAsync(CancellationToken cancellationToken = default)
+        public async Task<TProfile> FetchMyProfileAsync(CancellationToken cancellationToken = default)
         {
-            if (string.IsNullOrEmpty(CurrentUserId)) 
-            {
-                Debug.LogWarning("[ProfileService] Current Auth info missing.");
-                return null;
-            }
+            if (string.IsNullOrEmpty(CurrentUserId)) return null;
 
-            // Gọi từ local cache để tiết kiệm read operations cho Firebase
             if (_cachedMyProfile != null)
                 return _cachedMyProfile;
 
-            Models_UserProfile profileInfo = await FetchPublicProfileAsync(CurrentUserId, cancellationToken);
-            
-            // Xử lý tự Vá lỗi: Nếu tải về phát hiện User Profile cũ từ đời đầu chưa có Friend Code thì cấp ngay
-            if (profileInfo != null && string.IsNullOrEmpty(profileInfo.FriendCode))
-            {
-                string newFriendCode = await GenerateUniqueFriendCodeAsync(cancellationToken);
-                profileInfo.FriendCode = newFriendCode;
-                
-                DocumentReference userDoc = _db.Collection(COLLECTION_USERS).Document(CurrentUserId);
-                await userDoc.UpdateAsync(new Dictionary<string, object> { { "friendCode", newFriendCode } });
-                
-                Debug.Log($"[ProfileService] Đã tự động vá lỗi hệ thống: Tạo bù FriendCode mới [{newFriendCode}] cho tài khoản hệ cũ.");
-            }
-
-            _cachedMyProfile = profileInfo;
+            _cachedMyProfile = await FetchPublicProfileAsync(CurrentUserId, cancellationToken);
             return _cachedMyProfile;
         }
 
-        public async Task<Models_UserProfile> FetchPublicProfileAsync(string userId, CancellationToken cancellationToken = default)
+        public async Task<TProfile> FetchPublicProfileAsync(string userId, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrEmpty(userId)) return null;
 
-            // 1. Kiểm tra Cache trước
             if (_publicProfilesCache.TryGetValue(userId, out var cache) && !cache.IsExpired)
             {
                 return cache.Data;
@@ -143,20 +117,16 @@ namespace Suhdo.FSM.Profile
 
                 if (snapshot.Exists)
                 {
-                    // Tự động deserialize toàn bộ trường
-                    Models_UserProfile profile = snapshot.ConvertTo<Models_UserProfile>();
+                    TProfile profile = snapshot.ConvertTo<TProfile>();
                     profile.Uid = snapshot.Id; 
                     
-                    // 2. Cập nhật Cache
                     if (!_publicProfilesCache.ContainsKey(userId))
-                        _publicProfilesCache[userId] = new DataCache<Models_UserProfile>(_profileCacheDuration);
+                        _publicProfilesCache[userId] = new DataCache<TProfile>(_profileCacheDuration);
                     
                     _publicProfilesCache[userId].Update(profile);
                     
                     return profile;
                 }
-                
-                Debug.LogWarning($"[ProfileService] Không tìm thấy Profile cho UID {userId}");
                 return null;
             }
             catch (Exception ex)
@@ -166,13 +136,12 @@ namespace Suhdo.FSM.Profile
             }
         }
 
-        public async Task<Models_UserProfile> FindProfileByFriendCodeAsync(string friendCode, CancellationToken cancellationToken = default)
+        public async Task<TProfile> FindProfileByFriendCodeAsync(string friendCode, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrEmpty(friendCode)) return null;
 
             try
             {
-                // Truy vấn NoSQL cực nhanh không cần qua Document ID 
                 QuerySnapshot snapshot = await _db.Collection(COLLECTION_USERS)
                     .WhereEqualTo("friendCode", friendCode)
                     .Limit(1)
@@ -180,16 +149,13 @@ namespace Suhdo.FSM.Profile
 
                 if (snapshot.Count > 0)
                 {
-                    // SDK C# của Firebase trả IList kiểu gộp, nên phải dùng IEnumerator hoặc FirstOrDefault thay vì Index [0]
                     foreach (var doc in snapshot.Documents)
                     {
-                        Models_UserProfile profile = doc.ConvertTo<Models_UserProfile>();
+                        TProfile profile = doc.ConvertTo<TProfile>();
                         profile.Uid = doc.Id;
                         return profile;
                     }
                 }
-                
-                Debug.LogWarning($"[ProfileService] Không tìm thấy ai có FriendCode = {friendCode}");
                 return null;
             }
             catch (Exception ex)
@@ -199,47 +165,11 @@ namespace Suhdo.FSM.Profile
             }
         }
 
-        private string GenerateRandomShortCode()
+        public async Task<Dictionary<string, TProfile>> FetchPublicProfilesAsync(IEnumerable<string> userIds, CancellationToken cancellationToken = default)
         {
-            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-            var random = new System.Random();
-            var result = new char[6];
-            for (int i = 0; i < result.Length; i++)
-            {
-                result[i] = chars[random.Next(chars.Length)];
-            }
-            return new string(result);
-        }
-
-        // Sinh mã code và kết nối Database để đảm bảo mã Code không bao giờ bị trùng (Collision Prevention)
-        private async Task<string> GenerateUniqueFriendCodeAsync(CancellationToken cancellationToken = default)
-        {
-            int maxAttempts = 10;
-            for (int i = 0; i < maxAttempts; i++)
-            {
-                string code = GenerateRandomShortCode();
-                
-                // Quét xem Firestore đã từng có ông nào sử dụng cái FriendCode này hay chưa
-                QuerySnapshot snapshot = await _db.Collection(COLLECTION_USERS)
-                    .GetSnapshotAsync();
-                
-                if (snapshot.Count == 0) 
-                {
-                    return code; // Code trắng hoàn toàn -> Duyệt!
-                }
-                Debug.LogWarning($"[ProfileService] FriendCode {code} bị trùng! Đang lấy số mới hên xui...");
-            }
-            
-            // Xui đến mức 10 lần quay lại đụng nhầm 10 người thì kéo dài thêm ID ra chút thay vì crash server
-            return GenerateRandomShortCode() + UnityEngine.Random.Range(10, 99).ToString();
-        }
-
-        public async Task<Dictionary<string, Models_UserProfile>> FetchPublicProfilesAsync(IEnumerable<string> userIds, CancellationToken cancellationToken = default)
-        {
-            var results = new Dictionary<string, Models_UserProfile>();
+            var results = new Dictionary<string, TProfile>();
             var idsToFetch = new List<string>();
 
-            // 1. Phân loại: Lấy từ Cache hoặc đưa vào danh sách cần Fetch
             foreach (var id in userIds)
             {
                 if (string.IsNullOrEmpty(id)) continue;
@@ -258,7 +188,6 @@ namespace Suhdo.FSM.Profile
 
             try
             {
-                // Firestore limit for WhereIn is 30 elements
                 const int batchSize = 30;
                 for (int i = 0; i < idsToFetch.Count; i += batchSize)
                 {
@@ -270,15 +199,13 @@ namespace Suhdo.FSM.Profile
 
                     foreach (var doc in snapshot.Documents)
                     {
-                        var profile = doc.ConvertTo<Models_UserProfile>();
+                        var profile = doc.ConvertTo<TProfile>();
                         profile.Uid = doc.Id;
                         
-                        // 2. Cập nhật Cache cho từng User mới fetch về
                         if (!_publicProfilesCache.ContainsKey(doc.Id))
-                            _publicProfilesCache[doc.Id] = new DataCache<Models_UserProfile>(_profileCacheDuration);
+                            _publicProfilesCache[doc.Id] = new DataCache<TProfile>(_profileCacheDuration);
                         
                         _publicProfilesCache[doc.Id].Update(profile);
-                        
                         results[doc.Id] = profile;
                     }
                 }
@@ -289,6 +216,31 @@ namespace Suhdo.FSM.Profile
             }
 
             return results;
+        }
+
+        private async Task<string> GenerateUniqueFriendCodeAsync(CancellationToken cancellationToken = default)
+        {
+            for (int i = 0; i < 10; i++)
+            {
+                string code = GenerateRandomShortCode();
+                QuerySnapshot snapshot = await _db.Collection(COLLECTION_USERS)
+                    .WhereEqualTo("friendCode", code)
+                    .Limit(1)
+                    .GetSnapshotAsync();
+                
+                if (snapshot.Count == 0) return code;
+            }
+            return GenerateRandomShortCode() + UnityEngine.Random.Range(10, 99);
+        }
+
+        private string GenerateRandomShortCode()
+        {
+            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+            var random = new System.Random();
+            var result = new char[6];
+            for (int i = 0; i < result.Length; i++)
+                result[i] = chars[random.Next(chars.Length)];
+            return new string(result);
         }
     }
 }

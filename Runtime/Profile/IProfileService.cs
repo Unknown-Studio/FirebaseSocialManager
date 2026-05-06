@@ -1,34 +1,37 @@
+using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Suhdo.FSM.Profile.Models;
 
 namespace Suhdo.FSM.Profile
 {
-    public interface IProfileService
+    public interface IProfileService<TProfile> where TProfile : UserProfile, new()
     {
         /// <summary>
-        /// Update Profile nếu đã tồn tại hoặc tạo lần đầu tiên đăng nhập
+        /// Cập nhật profile của bản thân một cách linh hoạt. 
+        /// Nếu chưa có profile, hệ thống sẽ tự động tạo mới.
         /// </summary>
-        Task<bool> InitializeOrUpdateProfileAsync(string displayName, string avatarId, string frameId, CancellationToken cancellationToken = default);
+        Task<bool> UpdateMyProfileAsync(Action<TProfile> updateAction, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Kéo dữ liệu của Bản thân
         /// </summary>
-        Task<UserProfile> FetchMyProfileAsync(CancellationToken cancellationToken = default);
+        Task<TProfile> FetchMyProfileAsync(CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Lấy hồ sơ công khai của một người chơi bất kỳ (Dùng cho Leaderboard/Bang hội)
         /// </summary>
-        Task<UserProfile> FetchPublicProfileAsync(string userId, CancellationToken cancellationToken = default);
+        Task<TProfile> FetchPublicProfileAsync(string userId, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Tra cứu UserProfile thông qua mã Friend Code ngắn (Dùng để tìm bạn)
         /// </summary>
-        Task<UserProfile> FindProfileByFriendCodeAsync(string friendCode, CancellationToken cancellationToken = default);
+        Task<TProfile> FindProfileByFriendCodeAsync(string friendCode, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Lấy hàng loạt hồ sơ công khai (Dùng cho chiến lược Lazy Load danh sách bạn bè)
         /// </summary>
-        Task<System.Collections.Generic.Dictionary<string, UserProfile>> FetchPublicProfilesAsync(System.Collections.Generic.IEnumerable<string> userIds, CancellationToken cancellationToken = default);
+        Task<Dictionary<string, TProfile>> FetchPublicProfilesAsync(IEnumerable<string> userIds, CancellationToken cancellationToken = default);
     }
 }

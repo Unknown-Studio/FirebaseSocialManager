@@ -4,9 +4,21 @@ using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using Firebase.Firestore;
+using Suhdo.FSM.Profile.Models;
 
 namespace Suhdo.FSM.Sample.FriendChat
 {
+    using Models_UserProfile = Suhdo.FSM.Profile.Models.UserProfile;
+
+    // ĐỊNH NGHĨA PROFILE TÙY CHỈNH CHO PROJECT NÀY
+    [FirestoreData]
+    public class MyGameProfile : Models_UserProfile
+    {
+        [FirestoreProperty("level")] public int Level { get; set; } = 1;
+        [FirestoreProperty("score")] public long Score { get; set; } = 0;
+    }
+
     public class FriendTestUI : MonoBehaviour
     {
         private TMP_InputField _inputTargetId;
@@ -51,21 +63,30 @@ namespace Suhdo.FSM.Sample.FriendChat
 
         private async void FetchFriends()
         {
-            Log("Đang tải danh sách kết bạn...");
-            var list = await FirebaseInit.FriendService.FetchAllFriendsAsync();
-            if (list == null || list.Count == 0)
+            Log("Đang tải danh sách kết bạn (Dùng chiến lược Lazy Load)...");
+            var friendList = await FirebaseInit.FriendService.FetchAllFriendsAsync();
+            if (friendList == null || friendList.Count == 0)
             {
                 Log("=> Danh sách bạn bè trống.");
                 return;
             }
-
-            Log($"--- Danh sách bạn ({list.Count} UID) ---");
             
-            // Lấy danh sách UIDs để query trạng thái hàng loạt
-            var uids = list.ConvertAll(f => f.Uid);
+            // [Chiến lược Lazy Load]
+            var uids = friendList.ConvertAll(f => f.Uid);
+
+            // Ép kiểu sang IProfileService<MyGameProfile> để lấy các trường tùy chỉnh
+            var profileService = FirebaseInit.ProfileService as Suhdo.FSM.Profile.IProfileService<MyGameProfile>;
+            if (profileService == null)
+            {
+                Log("=> Lỗi: ProfileService không khớp với MyGameProfile.");
+                return;
+            }
+
+            var profiles = await profileService.FetchPublicProfilesAsync(uids);
             var statuses = await FirebaseInit.PresenceService.GetStatusesAsync(uids);
 
-            foreach (var f in list)
+            Log($"--- Danh sách bạn ({friendList.Count} người) ---");
+            foreach (var f in friendList)
             {
                 string statusIcon = "⚪ Offline";
                 if (statuses.TryGetValue(f.Uid, out var p) && p.IsOnline)
@@ -73,17 +94,24 @@ namespace Suhdo.FSM.Sample.FriendChat
                     statusIcon = "🟢 Online";
                 }
                 
-                Log($"{statusIcon} | Name: {f.FriendName} | Status: {f.Status}");
+                if (profiles.TryGetValue(f.Uid, out var profile))
+                {
+                    // Giờ đây chúng ta có thể truy cập .Level và .Score của MyGameProfile
+                    Log($"{statusIcon} | Name: {profile.DisplayName} | Lvl: {profile.Level} | Score: {profile.Score} | Status: {f.Status}");
+                }
+                else
+                {
+                    Log($"{statusIcon} | UID: {f.Uid} (Profile lỗi) | Status: {f.Status}");
+                }
             }
         }
 
-        // Helper Function tự động chuyển đổi mã FriendCode (6 ký tự) về UID thực của Firebase để query
         private async Task<string> ResolveInputToUidAsync()
         {
             string input = TargetId;
             if (string.IsNullOrEmpty(input)) return null;
 
-            if (input.Length <= 8) // Độ dài chuẩn của code ngắn
+            if (input.Length <= 8)
             {
                  Log($"Đang phân giải Token {input} về dạng UID gốc...");
                  var targetProfile = await FirebaseInit.ProfileService.FindProfileByFriendCodeAsync(input);
@@ -92,7 +120,7 @@ namespace Suhdo.FSM.Sample.FriendChat
                  Log($"=> KHÔNG TÌM THẤY MÃ AI LÀ: {input}!");
                  return null;
             }
-            return input; // Nếu chuỗi rất dài (28 ký tự), quy ước bạn đang copy paste UID trực tiếp từ console
+            return input;
         }
 
         private async void SendRequest()
@@ -106,23 +134,7 @@ namespace Suhdo.FSM.Sample.FriendChat
 
             Log($"Đang Request gửi lời mời kết bạn tới UID: {finalTargetUid}...");
             
-            // Tìm Profile thật của đối phương để lấy Avatar, Tên đính kèm vào FriendRecord 
-            var theirProfile = await FirebaseInit.ProfileService.FetchPublicProfileAsync(finalTargetUid);
-            if (theirProfile == null)
-            {
-                Log("=> Lỗi không lấy được Profile đối phương.");
-                return;
-            }
-
-            // Lấy Profile thật của chủ thể (My Session) 
-            var myProfile = await FirebaseInit.ProfileService.FetchMyProfileAsync();
-            if (myProfile == null)
-            {
-                 Log("=> Lỗi: Bản thân bạn chưa tạo Profile (Chưa gọi InitializeOrUpdateProfileAsync với server)");
-                 return;
-            }
-            
-            bool success = await FirebaseInit.FriendService.SendFriendRequestAsync(finalTargetUid, theirProfile, myProfile);
+            bool success = await FirebaseInit.FriendService.SendFriendRequestAsync(finalTargetUid);
             Log(success ? "=> Gửi YÊU CẦU thành công! Vui lòng bấm Load Danh Sách để xem trạng thái 'pending_sent'" : "=> Lỗi: Gửi thất bại do trùng lặp hoặc lỗi mạng.");
         }
 

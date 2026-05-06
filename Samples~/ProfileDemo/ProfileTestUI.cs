@@ -1,15 +1,25 @@
 using System;
-
 using Firebase.Auth;
 using Firebase.Firestore;
 using Suhdo.FSM.Achievements;
 using Suhdo.FSM.Profile;
+using Suhdo.FSM.Profile.Models;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace Suhdo.FSM.Sample.Profile
 {
+    using Models_UserProfile = Suhdo.FSM.Profile.Models.UserProfile;
+
+    // ĐỊNH NGHĨA PROFILE TÙY CHỈNH CHO DEMO
+    [FirestoreData]
+    public class DemoProfile : Models_UserProfile
+    {
+        [FirestoreProperty("level")] public int Level { get; set; } = 1;
+        [FirestoreProperty("guildId")] public string GuildId { get; set; } = "";
+    }
+
     [FirestoreData]
     public class DemoAchievements
     {
@@ -42,8 +52,8 @@ namespace Suhdo.FSM.Sample.Profile
         [SerializeField] private Button btnSearchByCode;
         [SerializeField] private Button btnTestAchievements;
 
-        // Caching
-        private IProfileService ProfileService => FirebaseInit.ProfileService;
+        // Caching - Ép kiểu về DemoProfile
+        private IProfileService<DemoProfile> ProfileService => FirebaseInit.ProfileService as IProfileService<DemoProfile>;
         private IAchievementsService<DemoAchievements> AchievementsService { get; set; }
         private string CurrentUserId => FirebaseAuth.DefaultInstance.CurrentUser?.UserId;
 
@@ -75,7 +85,14 @@ namespace Suhdo.FSM.Sample.Profile
             }
 
             Log($"Updating profile: Name={name}, Avatar={avatar}, Frame={frame}...");
-            bool success = await ProfileService.InitializeOrUpdateProfileAsync(name, avatar, frame);
+            
+            // Sử dụng cơ chế Update My Profile linh hoạt
+            bool success = await ProfileService.UpdateMyProfileAsync(p => {
+                p.DisplayName = name;
+                p.AvatarId = avatar;
+                p.FrameId = frame;
+                // Có thể cập nhật thêm Level/GuildId nếu muốn ở đây
+            });
             
             if (success)
             {

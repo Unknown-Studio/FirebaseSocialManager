@@ -21,16 +21,13 @@ namespace Suhdo.FSM.Profile.Models
         [FirestoreProperty("frameId")]
         public string FrameId { get; set; }
 
-        [FirestoreProperty("level")]
-        public int Level { get; set; } = 1;
-
-        [FirestoreProperty("guildId")]
-        public string GuildId { get; set; } = "";
-
         [FirestoreProperty("lastLogin")]
         public object LastLogin { get; set; }
 
         [FirestoreProperty("createdAt")]
         public object ServerCreatedAt { get; set; }
+        
+        // Lưu ý: Các trường như Level, Score, v.v. nên được định nghĩa ở class kế thừa 
+        // trong từng project cụ thể để đảm bảo tính linh hoạt.
     }
 }

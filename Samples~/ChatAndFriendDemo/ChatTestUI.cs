@@ -2,6 +2,7 @@ using System;
 using System.Text;
 using System.Threading.Tasks;
 using Firebase.Auth;
+using Firebase.Firestore;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -167,9 +168,9 @@ namespace Suhdo.FSM.Sample.FriendChat
             {
                 // Bộ thu Firebase giật rất lẹ, ngay cả tự bản thân người viết chọt data vô nó cũng bị nảy callback.
                 // Ở đây ta phớt lờ mình đi, chỉ in log cho Tin của Client bên kia dội vô
-                if (newMsg.SenderId != CurrentUserId) 
+                if (newMsg.SenderId != CurrentUserId)
                 {
-                    Log($"<color=orange>[RENG RENG - KHÁCH GỎI ĐẾN]: {newMsg.Text}</color>");
+                    Log($"<color=orange>[RENG RENG - KHÁCH GỎI ĐẾN]: {newMsg.Text}\n{(Timestamp)newMsg.Timestamp}</color>");
                 }
             });
             btnListen.GetComponentInChildren<TextMeshProUGUI>().text = "Ngắt Thu Thập Real-time";
