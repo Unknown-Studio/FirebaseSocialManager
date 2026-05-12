@@ -38,9 +38,13 @@ namespace Suhdo.FSM.Profile
                 return false;
             }
 
+            Debug.Log($"[ProfileService] Bắt đầu cập nhật profile cho User: {CurrentUserId}");
+
             try
             {
                 DocumentReference userDoc = _db.Collection(COLLECTION_USERS).Document(CurrentUserId);
+                
+                Debug.Log("[ProfileService] Đang tải snapshot từ Firestore...");
                 DocumentSnapshot snapshot = await userDoc.GetSnapshotAsync();
                 
                 TProfile profile;
@@ -48,10 +52,12 @@ namespace Suhdo.FSM.Profile
 
                 if (snapshot.Exists)
                 {
+                    Debug.Log("[ProfileService] Tìm thấy document cũ. Đang chuyển đổi dữ liệu...");
                     profile = snapshot.ConvertTo<TProfile>();
                 }
                 else
                 {
+                    Debug.Log("[ProfileService] Không tìm thấy document. Khởi tạo profile mới.");
                     profile = new TProfile();
                     profile.ServerCreatedAt = FieldValue.ServerTimestamp;
                     isNew = true;
@@ -66,26 +72,29 @@ namespace Suhdo.FSM.Profile
                 // Đảm bảo có FriendCode
                 if (string.IsNullOrEmpty(profile.FriendCode))
                 {
+                    Debug.Log("[ProfileService] FriendCode trống. Đang tạo FriendCode duy nhất...");
                     profile.FriendCode = await GenerateUniqueFriendCodeAsync(cancellationToken);
+                    Debug.Log($"[ProfileService] Đã tạo FriendCode mới: {profile.FriendCode}");
                 }
 
                 if (isNew)
                 {
+                    Debug.Log("[ProfileService] Đang thực hiện SetAsync cho document mới...");
                     await userDoc.SetAsync(profile);
                 }
                 else
                 {
-                    // Convert sang Dictionary để Update (Tránh ghi đè toàn bộ nếu dùng Set với T)
-                    // Hoặc đơn giản là dùng SetAsync(profile, SetOptions.MergeAll)
+                    Debug.Log("[ProfileService] Đang thực hiện SetAsync với MergeAll cho document cũ...");
                     await userDoc.SetAsync(profile, SetOptions.MergeAll);
                 }
 
+                Debug.Log("[ProfileService] Cập nhật Profile thành công. Reset cache.");
                 _cachedMyProfile = null; // Reset cache bản thân
                 return true;
             }
             catch (Exception ex)
             {
-                Debug.LogError($"[ProfileService] Lỗi khi cập nhật profile: {ex.Message}");
+                Debug.LogError($"[ProfileService] Lỗi nghiêm trọng khi cập nhật profile: {ex.Message}\n{ex.StackTrace}");
                 return false;
             }
         }
